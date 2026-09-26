@@ -1,0 +1,2 @@
+# Reserved for genuine shared packages between workspaces.
+# No shared packages are currently created as no shared source code exists at setup time.

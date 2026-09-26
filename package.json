@@ -1,0 +1,29 @@
+{
+  "name": "detector",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22.22.0",
+    "npm": ">=11.0.0"
+  },
+  "scripts": {
+    "dev": "npm run dev --workspaces",
+    "dev:client": "npm run dev --workspace=detector-client",
+    "dev:server": "npm run dev --workspace=detector-server",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "eslint .",
+    "oxlint": "oxlint -c oxlint.config.json"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.10.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.6",
+    "globals": "^17.12.0",
+    "oxlint": "^1.85.0"
+  }
+}
