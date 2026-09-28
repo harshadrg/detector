@@ -1,6 +1,8 @@
 import { query, executeTransaction, sql } from '../db/connection.js';
 import { hashPassword } from '../utils/crypto.js';
 import { authorizationService } from '../services/authorization.service.js';
+import { auditService } from '../services/audit.service.js';
+import { notificationService } from '../services/notification.service.js';
 import {
   createEmployeeSchema,
   updateStatusSchema,
@@ -274,6 +276,35 @@ export async function createEmployee(req, res) {
       }
     });
 
+    // Emit Audit Event & Dispatch Welcome Notification
+    await auditService.log({
+      module_code: 'CORE',
+      entity_type: 'EMPLOYEE',
+      entity_id: ecode,
+      action: 'CREATE_EMPLOYEE',
+      performed_by: req.user.ecode,
+      acting_context: req.actingContext || null,
+      previous_data: null,
+      updated_data: {
+        ecode,
+        name,
+        email,
+        status: 'ACTIVE',
+        roles: validatedRoles.map((r) => r.role_code),
+      },
+      remarks: `Created employee profile for ${name} (${ecode}).`,
+    });
+
+    await notificationService.dispatch({
+      recipient_ecode: ecode,
+      sender_ecode: req.user.ecode,
+      notification_type: 'INFO',
+      entity_type: 'EMPLOYEE',
+      entity_id: ecode,
+      message: `Welcome to Detector Enterprise Platform. Your profile has been initialized with ${validatedRoles.length} assigned role(s).`,
+      action_url: null,
+    });
+
     return res.status(201).json({
       success: true,
       data: {
@@ -396,6 +427,35 @@ export async function updateEmployeeStatus(req, res) {
            WHERE ecode = @ecode`
         );
       }
+    });
+
+    // Emit Audit Event & Dispatch Status Notification
+    await auditService.log({
+      module_code: 'CORE',
+      entity_type: 'EMPLOYEE',
+      entity_id: ecode,
+      action: 'UPDATE_EMPLOYEE_STATUS',
+      performed_by: req.user.ecode,
+      acting_context: req.actingContext || null,
+      previous_data: { status: employee.status },
+      updated_data: { status },
+      remarks:
+        status === 'INACTIVE'
+          ? `Employee account deactivated. Active process assignments count: ${activeAssignments.length}.`
+          : 'Employee account reactivated.',
+    });
+
+    await notificationService.dispatch({
+      recipient_ecode: ecode,
+      sender_ecode: req.user.ecode,
+      notification_type: status === 'INACTIVE' ? 'SECURITY' : 'INFO',
+      entity_type: 'EMPLOYEE',
+      entity_id: ecode,
+      message:
+        status === 'INACTIVE'
+          ? `Your account status was set to INACTIVE by administrator ${req.user.ecode}. Active sessions have been revoked.`
+          : `Your account status was reactivated by administrator ${req.user.ecode}.`,
+      action_url: null,
     });
 
     return res.status(200).json({
@@ -573,6 +633,33 @@ export async function assignRole(req, res) {
        WHERE erm.ecode = @ecode AND r.is_active = 1`,
       { ecode: { type: sql.VarChar(20), value: ecode } }
     );
+
+    // Emit Audit Event & Dispatch Role Notification
+    await auditService.log({
+      module_code: 'CORE',
+      entity_type: 'EMPLOYEE_ROLE',
+      entity_id: ecode,
+      action: action === 'ASSIGN' ? 'ASSIGN_ROLE' : 'REVOKE_ROLE',
+      performed_by: req.user.ecode,
+      acting_context: req.actingContext || null,
+      previous_data: null,
+      updated_data: { ecode, role_code, action },
+      remarks: `${action === 'ASSIGN' ? 'Assigned' : 'Revoked'} role ${role_code} ${
+        action === 'ASSIGN' ? 'to' : 'from'
+      } ${ecode}.`,
+    });
+
+    await notificationService.dispatch({
+      recipient_ecode: ecode,
+      sender_ecode: req.user.ecode,
+      notification_type: 'STATUS_CHANGE',
+      entity_type: 'ROLE',
+      entity_id: role_code,
+      message: `Role ${role_code} was ${
+        action === 'ASSIGN' ? 'assigned to' : 'revoked from'
+      } your account by administrator ${req.user.ecode}.`,
+      action_url: null,
+    });
 
     return res.status(200).json({
       success: true,

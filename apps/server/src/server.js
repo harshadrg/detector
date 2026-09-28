@@ -5,6 +5,8 @@ import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.routes.js';
 import employeeRoutes from './routes/employee.routes.js';
 import rbacRoutes from './routes/rbac.routes.js';
+import auditRoutes from './routes/audit.routes.js';
+import notificationRoutes from './routes/notification.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -29,6 +31,8 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/core/auth', authRoutes);
 app.use('/api/core/employees', employeeRoutes);
 app.use('/api/core/rbac', rbacRoutes);
+app.use('/api/core/audit', auditRoutes);
+app.use('/api/core/notifications', notificationRoutes);
 
 // Standard 404 Handler
 app.use((_req, res) => {
