@@ -8,6 +8,7 @@ import { CapabilityPreview } from './components/auth/CapabilityPreview.jsx';
 import { Loader2 } from 'lucide-react';
 
 import { EmployeeDirectory } from './components/employees/EmployeeDirectory.jsx';
+import { AuditLedger } from './components/audit/AuditLedger.jsx';
 
 function Shell() {
   const [currentTab, setCurrentTab] = useState('dashboard');
@@ -23,6 +24,8 @@ function Shell() {
           <div className="max-w-6xl mx-auto">
             {currentTab === 'employees' ? (
               <EmployeeDirectory />
+            ) : currentTab === 'audit' ? (
+              <AuditLedger />
             ) : (
               <CapabilityPreview />
             )}
