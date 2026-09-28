@@ -15,7 +15,7 @@ This roadmap governs the phased engineering delivery of the **Detector Enterpris
 
 - [x] **Phase 0: System Initialization & Monorepo Baseline**
 - [x] **Phase 1: Database Foundation & Core Schemas (T-SQL Scripts, Constraints & Triggers)**
-- [ ] **Phase 2: Core Platform Identity, Authentication & Session Security**
+- [x] **Phase 2: Core Platform Identity, Authentication & Session Security**
 - [ ] **Phase 3: Core Authorization Engine (RBAC + ABAC Middleware & Capability Resolver)**
 - [ ] **Phase 4: Core Employee Directory & Role Governance**
 - [ ] **Phase 5: Core Immutable Audit Ledger (`Audit_Events`) & Notifications Engine**
@@ -57,7 +57,7 @@ This roadmap governs the phased engineering delivery of the **Detector Enterpris
 ---
 
 ### Phase 2: Core Platform Identity, Authentication & Session Security
-- **Status:** `PENDING` (`[ ]`)
+- **Status:** `COMPLETED` (`[x]`)
 - **Objectives:**
   - Implement backend authentication endpoints (`/api/core/auth/login`, `/api/core/auth/logout`, `/api/core/auth/me`).
   - Secure credential verification with password hashing and `token_version` invalidation.
