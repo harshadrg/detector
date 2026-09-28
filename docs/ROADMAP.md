@@ -79,7 +79,7 @@ This roadmap governs the phased engineering delivery of the **Detector Enterpris
 ---
 
 ### Phase 4: Core Employee Directory & Role Governance
-- **Status:** `PENDING` (`[ ]`)
+- **Status:** `COMPLETED` (`[x]`)
 - **Objectives:**
   - Build `/api/core/employees` endpoints (list, create, update, role assignment, status toggling).
   - Enforce separation between administrative roles (`PLATFORM_ADMIN`, `MODULE_ADMIN`) and organizational roles (`ORGANIZATIONAL`).
