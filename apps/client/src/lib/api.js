@@ -184,3 +184,53 @@ export const rbacApi = {
     });
   },
 };
+
+export const auditApi = {
+  getEvents: async ({
+    page = 1,
+    pageSize = 20,
+    module_code = '',
+    entity_type = '',
+    entity_id = '',
+    action = '',
+    search = '',
+  } = {}) => {
+    const params = new URLSearchParams({
+      page: String(page),
+      pageSize: String(pageSize),
+    });
+    if (module_code && module_code !== 'ALL') params.set('module_code', module_code);
+    if (entity_type && entity_type !== 'ALL') params.set('entity_type', entity_type);
+    if (entity_id) params.set('entity_id', entity_id);
+    if (action) params.set('action', action);
+    if (search) params.set('search', search);
+
+    return apiFetch(`/api/core/audit?${params.toString()}`, {
+      method: 'GET',
+    });
+  },
+};
+
+export const notificationApi = {
+  list: async ({ page = 1, pageSize = 20, unreadOnly = false } = {}) => {
+    const params = new URLSearchParams({
+      page: String(page),
+      pageSize: String(pageSize),
+      unreadOnly: String(unreadOnly),
+    });
+    return apiFetch(`/api/core/notifications?${params.toString()}`, {
+      method: 'GET',
+    });
+  },
+  markAsRead: async (notificationId) => {
+    return apiFetch(`/api/core/notifications/${encodeURIComponent(notificationId)}/read`, {
+      method: 'PATCH',
+    });
+  },
+  markAllAsRead: async () => {
+    return apiFetch('/api/core/notifications/mark-all-read', {
+      method: 'POST',
+    });
+  },
+};
+

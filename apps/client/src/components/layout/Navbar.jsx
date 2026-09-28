@@ -1,5 +1,6 @@
 import { useAuth } from '../../context/useAuth.js';
 import { RoleContextSwitcher } from './RoleContextSwitcher.jsx';
+import { NotificationBell } from '../notifications/NotificationBell.jsx';
 import { ShieldCheck, LogOut, User, Key } from 'lucide-react';
 
 export function Navbar() {
@@ -17,15 +18,18 @@ export function Navbar() {
             Detector Platform
           </span>
           <span className="text-[10px] text-slate-400 font-mono">
-            Core Shell • Phase 3 ABAC/RBAC
+            Core Platform • Identity & Governance
           </span>
         </div>
       </div>
 
       {/* Center / Right Section */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-3">
         {/* Safe UI Context Switcher */}
         <RoleContextSwitcher />
+
+        {/* Notifications Bell */}
+        <NotificationBell />
 
         {/* User Profile Pill */}
         <div className="flex items-center space-x-2.5 pl-3 border-l border-slate-200/80">
