@@ -3,6 +3,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.routes.js';
+import employeeRoutes from './routes/employee.routes.js';
+import rbacRoutes from './routes/rbac.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -23,8 +25,10 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
-// Core Platform Authentication Routes
+// Core Platform Routes
 app.use('/api/core/auth', authRoutes);
+app.use('/api/core/employees', employeeRoutes);
+app.use('/api/core/rbac', rbacRoutes);
 
 // Standard 404 Handler
 app.use((_req, res) => {
