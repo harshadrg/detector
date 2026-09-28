@@ -139,13 +139,16 @@ export async function authenticate(req, res, next) {
       { ecode: { type: sql.VarChar(20), value: decoded.ecode } }
     );
 
+    const permissions = (permResult.recordset || []).map((row) => row.permission_code);
+
     req.user = {
       ecode: employee.ecode,
       name: employee.name,
       email: employee.email,
       status: employee.status,
       roles: rolesResult.recordset || [],
-      permissions: (permResult.recordset || []).map((row) => row.permission_code),
+      permissions,
+      real_permissions: permissions,
     };
 
     next();

@@ -2,6 +2,7 @@ import { query, sql } from '../db/connection.js';
 import { verifyPassword, generateRandomToken } from '../utils/crypto.js';
 import { generateAccessToken, cookieConfig } from '../utils/token.js';
 import { loginSchema } from '../schemas/auth.schema.js';
+import { authorizationService } from '../services/authorization.service.js';
 
 export async function login(req, res) {
   try {
@@ -182,10 +183,18 @@ export async function logout(req, res) {
 
 export async function getMe(req, res) {
   try {
+    const canContextSwitch = req.user.real_permissions
+      ? req.user.real_permissions.includes('CORE.CONTEXT.SWITCH')
+      : req.user.permissions.includes('CORE.CONTEXT.SWITCH');
+
     return res.status(200).json({
       success: true,
       data: {
-        user: req.user,
+        user: {
+          ...req.user,
+          actingContext: req.user.acting_context || null,
+          canContextSwitch,
+        },
       },
       error: null,
     });
@@ -201,3 +210,27 @@ export async function getMe(req, res) {
     });
   }
 }
+
+export async function getContextRoles(_req, res) {
+  try {
+    const roles = await authorizationService.getSimulatableRoles();
+    return res.status(200).json({
+      success: true,
+      data: {
+        roles,
+      },
+      error: null,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      data: null,
+      error: {
+        code: 'GET_CONTEXT_ROLES_FAILED',
+        message: 'Failed to retrieve available context roles.',
+        details: [error.message],
+      },
+    });
+  }
+}
+
