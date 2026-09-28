@@ -9,6 +9,7 @@ import { Loader2 } from 'lucide-react';
 
 import { EmployeeDirectory } from './components/employees/EmployeeDirectory.jsx';
 import { AuditLedger } from './components/audit/AuditLedger.jsx';
+import { MasterDataManager } from './components/masters/MasterDataManager.jsx';
 
 function Shell() {
   const [currentTab, setCurrentTab] = useState('dashboard');
@@ -26,6 +27,8 @@ function Shell() {
               <EmployeeDirectory />
             ) : currentTab === 'audit' ? (
               <AuditLedger />
+            ) : currentTab === 'masters' ? (
+              <MasterDataManager />
             ) : (
               <CapabilityPreview />
             )}

@@ -234,3 +234,95 @@ export const notificationApi = {
   },
 };
 
+export const masterApi = {
+  getAll: async () => {
+    return apiFetch('/api/modules/bpms/masters/all', {
+      method: 'GET',
+    });
+  },
+  getVerticals: async ({ activeOnly = false, search = '' } = {}) => {
+    const params = new URLSearchParams();
+    if (activeOnly) params.set('activeOnly', 'true');
+    if (search) params.set('search', search);
+    return apiFetch(`/api/modules/bpms/masters/verticals?${params.toString()}`, {
+      method: 'GET',
+    });
+  },
+  createVertical: async (data) => {
+    return apiFetch('/api/modules/bpms/masters/verticals', {
+      method: 'POST',
+      body: data,
+    });
+  },
+  updateVertical: async (id, data) => {
+    return apiFetch(`/api/modules/bpms/masters/verticals/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: data,
+    });
+  },
+  getSBUs: async ({ vertical_id = '', activeOnly = false, search = '' } = {}) => {
+    const params = new URLSearchParams();
+    if (vertical_id) params.set('vertical_id', String(vertical_id));
+    if (activeOnly) params.set('activeOnly', 'true');
+    if (search) params.set('search', search);
+    return apiFetch(`/api/modules/bpms/masters/sbus?${params.toString()}`, {
+      method: 'GET',
+    });
+  },
+  createSBU: async (data) => {
+    return apiFetch('/api/modules/bpms/masters/sbus', {
+      method: 'POST',
+      body: data,
+    });
+  },
+  updateSBU: async (id, data) => {
+    return apiFetch(`/api/modules/bpms/masters/sbus/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: data,
+    });
+  },
+  getClients: async ({ client_type = '', activeOnly = false, search = '' } = {}) => {
+    const params = new URLSearchParams();
+    if (client_type && client_type !== 'ALL') params.set('client_type', client_type);
+    if (activeOnly) params.set('activeOnly', 'true');
+    if (search) params.set('search', search);
+    return apiFetch(`/api/modules/bpms/masters/clients?${params.toString()}`, {
+      method: 'GET',
+    });
+  },
+  createClient: async (data) => {
+    return apiFetch('/api/modules/bpms/masters/clients', {
+      method: 'POST',
+      body: data,
+    });
+  },
+  updateClient: async (id, data) => {
+    return apiFetch(`/api/modules/bpms/masters/clients/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: data,
+    });
+  },
+  getLocations: async ({ state = '', city = '', search = '' } = {}) => {
+    const params = new URLSearchParams();
+    if (state) params.set('state', state);
+    if (city) params.set('city', city);
+    if (search) params.set('search', search);
+    return apiFetch(`/api/modules/bpms/masters/locations?${params.toString()}`, {
+      method: 'GET',
+    });
+  },
+  createLocation: async (data) => {
+    return apiFetch('/api/modules/bpms/masters/locations', {
+      method: 'POST',
+      body: data,
+    });
+  },
+  updateLocation: async (id, data) => {
+    return apiFetch(`/api/modules/bpms/masters/locations/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: data,
+    });
+  },
+};
+
+

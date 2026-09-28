@@ -7,6 +7,7 @@ import {
   FileSpreadsheet,
   Users,
   ScrollText,
+  Database,
 } from 'lucide-react';
 
 export function Sidebar({ currentTab, onTabSelect }) {
@@ -25,6 +26,12 @@ export function Sidebar({ currentTab, onTabSelect }) {
       label: 'Process Registry',
       icon: GitBranch,
       visible: hasPermission('BPMS.PROCESS.VIEW'),
+    },
+    {
+      id: 'masters',
+      label: 'Master Data',
+      icon: Database,
+      visible: hasAnyPermission(['BPMS.MASTER.VIEW', 'BPMS.MASTER.MANAGE', 'BPMS.PROCESS.VIEW']),
     },
     {
       id: 'reviews',
