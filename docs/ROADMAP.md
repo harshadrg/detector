@@ -89,7 +89,7 @@ This roadmap governs the phased engineering delivery of the **Detector Enterpris
 ---
 
 ### Phase 5: Core Immutable Audit Ledger (`Audit_Events`) & Notifications Engine
-- **Status:** `PENDING` (`[ ]`)
+- **Status:** `COMPLETED` (`[x]`)
 - **Objectives:**
   - Build centralized, platform-wide auditing service logging previous/updated JSON diffs, actor identity, acting context, and correlation IDs.
   - Build polymorphic notification dispatch engine (`recipient_ecode`, `entity_type`, `entity_id`, `message`, `action_url`).
