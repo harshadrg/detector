@@ -14,7 +14,7 @@ This roadmap governs the phased engineering delivery of the **Detector Enterpris
 ## Master Phase Checklist
 
 - [x] **Phase 0: System Initialization & Monorepo Baseline**
-- [ ] **Phase 1: Database Foundation & Core Schemas (T-SQL Scripts, Constraints & Triggers)**
+- [x] **Phase 1: Database Foundation & Core Schemas (T-SQL Scripts, Constraints & Triggers)**
 - [ ] **Phase 2: Core Platform Identity, Authentication & Session Security**
 - [ ] **Phase 3: Core Authorization Engine (RBAC + ABAC Middleware & Capability Resolver)**
 - [ ] **Phase 4: Core Employee Directory & Role Governance**
@@ -44,7 +44,7 @@ This roadmap governs the phased engineering delivery of the **Detector Enterpris
 ---
 
 ### Phase 1: Database Foundation & Core Schemas (T-SQL Scripts, Constraints & Triggers)
-- **Status:** `PENDING` (`[ ]`)
+- **Status:** `COMPLETED` (`[x]`)
 - **Objectives:**
   - Implement raw parameterized T-SQL database migration scripts for Microsoft SQL Server (`Detector_DB`).
   - Deploy **Core Platform Tables:** `Employees`, `Employee_Identities`, `System_Modules`, `Roles`, `Permissions`, `Role_Permissions`, `Employee_Role_Mapping`, `Notifications`, `Audit_Events`.
