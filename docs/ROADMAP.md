@@ -99,7 +99,7 @@ This roadmap governs the phased engineering delivery of the **Detector Enterpris
 ---
 
 ### Phase 6: BPMS Master Data Management (Verticals, SBUs, Clients & Locations)
-- **Status:** `PENDING` (`[ ]`)
+- **Status:** `COMPLETED` (`[x]`)
 - **Objectives:**
   - Build master data management REST endpoints under `/api/modules/bpms/masters` (Verticals, SBUs, Clients, Locations).
   - Seed baseline master records derived from `DummyData.xlsx` analysis (BFSI, MEU, TECH&DIGITAL, EMERGING).
