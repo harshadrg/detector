@@ -144,3 +144,43 @@ export const authApi = {
     });
   },
 };
+
+export const employeeApi = {
+  list: async ({ page = 1, pageSize = 10, status = 'ALL', search = '' } = {}) => {
+    const params = new URLSearchParams({
+      page: String(page),
+      pageSize: String(pageSize),
+      status,
+      search,
+    });
+    return apiFetch(`/api/core/employees?${params.toString()}`, {
+      method: 'GET',
+    });
+  },
+  create: async (employeeData) => {
+    return apiFetch('/api/core/employees', {
+      method: 'POST',
+      body: employeeData,
+    });
+  },
+  updateStatus: async (ecode, status) => {
+    return apiFetch(`/api/core/employees/${encodeURIComponent(ecode)}/status`, {
+      method: 'PATCH',
+      body: { status },
+    });
+  },
+};
+
+export const rbacApi = {
+  getRoles: async () => {
+    return apiFetch('/api/core/rbac/roles', {
+      method: 'GET',
+    });
+  },
+  assignRole: async ({ ecode, role_code, action }) => {
+    return apiFetch('/api/core/rbac/assign-role', {
+      method: 'POST',
+      body: { ecode, role_code, action },
+    });
+  },
+};

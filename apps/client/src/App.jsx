@@ -7,6 +7,8 @@ import { Sidebar } from './components/layout/Sidebar.jsx';
 import { CapabilityPreview } from './components/auth/CapabilityPreview.jsx';
 import { Loader2 } from 'lucide-react';
 
+import { EmployeeDirectory } from './components/employees/EmployeeDirectory.jsx';
+
 function Shell() {
   const [currentTab, setCurrentTab] = useState('dashboard');
 
@@ -19,7 +21,11 @@ function Shell() {
 
         <main className="flex-1 p-8 overflow-y-auto">
           <div className="max-w-6xl mx-auto">
-            <CapabilityPreview />
+            {currentTab === 'employees' ? (
+              <EmployeeDirectory />
+            ) : (
+              <CapabilityPreview />
+            )}
           </div>
         </main>
       </div>
