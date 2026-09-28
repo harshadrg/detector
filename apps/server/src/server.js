@@ -7,6 +7,7 @@ import employeeRoutes from './routes/employee.routes.js';
 import rbacRoutes from './routes/rbac.routes.js';
 import auditRoutes from './routes/audit.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
+import masterRoutes from './routes/master.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -33,6 +34,9 @@ app.use('/api/core/employees', employeeRoutes);
 app.use('/api/core/rbac', rbacRoutes);
 app.use('/api/core/audit', auditRoutes);
 app.use('/api/core/notifications', notificationRoutes);
+
+// BPMS Operational Module Routes
+app.use('/api/modules/bpms/masters', masterRoutes);
 
 // Standard 404 Handler
 app.use((_req, res) => {
