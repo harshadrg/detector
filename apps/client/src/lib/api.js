@@ -1,6 +1,7 @@
 /**
  * Centralized API client using browser native fetch (Zero Axios rule).
- * Handles automatic JSON serialization, credentials (cookies), and CSRF token transmission.
+ * Handles automatic JSON serialization, credentials (cookies), CSRF tokens,
+ * and Safe UI Context Switching headers.
  */
 
 class ApiError extends Error {
@@ -25,6 +26,7 @@ export function getCookie(name) {
 }
 
 let cachedCsrfToken = null;
+let activeContextRole = null;
 
 export function setCsrfToken(token) {
   cachedCsrfToken = token;
@@ -34,8 +36,17 @@ export function getCsrfToken() {
   return cachedCsrfToken || getCookie('csrf_token');
 }
 
+export function setContextRole(roleCode) {
+  activeContextRole = roleCode;
+}
+
+export function getContextRole() {
+  return activeContextRole;
+}
+
 /**
- * Dispatches an HTTP request with credentialed cookies and CSRF protection.
+ * Dispatches an HTTP request with credentialed cookies, CSRF protection,
+ * and safe UI context headers.
  *
  * @param {string} endpoint - API path, e.g. '/api/core/auth/login'
  * @param {RequestInit} [options={}]
@@ -55,6 +66,11 @@ export async function apiFetch(endpoint, options = {}) {
     if (csrfToken && !headers.has('X-CSRF-Token')) {
       headers.set('X-CSRF-Token', csrfToken);
     }
+  }
+
+  // Attach Safe UI Context Switching header if set
+  if (activeContextRole && !headers.has('X-UI-Context-Role')) {
+    headers.set('X-UI-Context-Role', activeContextRole);
   }
 
   // Auto-set JSON content-type if body is an object
@@ -114,10 +130,16 @@ export const authApi = {
       method: 'POST',
     });
     setCsrfToken(null);
+    setContextRole(null);
     return data;
   },
   getMe: async () => {
     return apiFetch('/api/core/auth/me', {
+      method: 'GET',
+    });
+  },
+  getContextRoles: async () => {
+    return apiFetch('/api/core/auth/context-roles', {
       method: 'GET',
     });
   },
