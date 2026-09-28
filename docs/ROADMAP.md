@@ -16,7 +16,7 @@ This roadmap governs the phased engineering delivery of the **Detector Enterpris
 - [x] **Phase 0: System Initialization & Monorepo Baseline**
 - [x] **Phase 1: Database Foundation & Core Schemas (T-SQL Scripts, Constraints & Triggers)**
 - [x] **Phase 2: Core Platform Identity, Authentication & Session Security**
-- [ ] **Phase 3: Core Authorization Engine (RBAC + ABAC Middleware & Capability Resolver)**
+- [x] **Phase 3: Core Authorization Engine (RBAC + ABAC Middleware & Capability Resolver)**
 - [ ] **Phase 4: Core Employee Directory & Role Governance**
 - [ ] **Phase 5: Core Immutable Audit Ledger (`Audit_Events`) & Notifications Engine**
 - [ ] **Phase 6: BPMS Master Data Management (Verticals, SBUs, Clients & Locations)**
@@ -68,7 +68,7 @@ This roadmap governs the phased engineering delivery of the **Detector Enterpris
 ---
 
 ### Phase 3: Core Authorization Engine (RBAC + ABAC Middleware & Capability Resolver)
-- **Status:** `PENDING` (`[ ]`)
+- **Status:** `COMPLETED` (`[x]`)
 - **Objectives:**
   - Implement centralized `AuthorizationService` evaluating RBAC permissions and ABAC ownership scopes (`GLOBAL`, `OWN_HIERARCHY`, `OWN_PROCESS`, `SELF`).
   - Implement Express middleware guards: `requirePermission(code)` and `requireScope(evaluator)`.
