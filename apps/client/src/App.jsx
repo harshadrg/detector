@@ -4,12 +4,13 @@ import { useAuth } from './context/useAuth.js';
 import { LoginForm } from './components/auth/LoginForm.jsx';
 import { Navbar } from './components/layout/Navbar.jsx';
 import { Sidebar } from './components/layout/Sidebar.jsx';
-import { CapabilityPreview } from './components/auth/CapabilityPreview.jsx';
+import { OperationalOverview } from './components/dashboard/OperationalOverview.jsx';
 import { Loader2 } from 'lucide-react';
 
 import { EmployeeDirectory } from './components/employees/EmployeeDirectory.jsx';
 import { AuditLedger } from './components/audit/AuditLedger.jsx';
 import { MasterDataManager } from './components/masters/MasterDataManager.jsx';
+import { ExcelIngestion } from './components/imports/ExcelIngestion.jsx';
 
 function Shell() {
   const [currentTab, setCurrentTab] = useState('dashboard');
@@ -29,8 +30,10 @@ function Shell() {
               <AuditLedger />
             ) : currentTab === 'masters' ? (
               <MasterDataManager />
+            ) : currentTab === 'imports' ? (
+              <ExcelIngestion />
             ) : (
-              <CapabilityPreview />
+              <OperationalOverview onNavigate={setCurrentTab} />
             )}
           </div>
         </main>
