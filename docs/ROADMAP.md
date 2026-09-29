@@ -108,7 +108,7 @@ This roadmap governs the phased engineering delivery of the **Detector Enterpris
 ---
 
 ### Phase 7: BPMS Staged Excel Migration & Ingestion Pipeline
-- **Status:** `PENDING` (`[ ]`)
+- **Status:** `COMPLETED` (`[x]`)
 - **Objectives:**
   - Implement staged Excel upload endpoint (`/api/modules/bpms/imports/stage`) using `multer` and `read-excel-file`.
   - Implement data normalization engine (handling sentinel values like `PO_NOT_RAISED`, `BUSINESS_CLOSED`, `-`, trimming whitespace, standardizing client types).
