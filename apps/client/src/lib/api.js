@@ -325,4 +325,42 @@ export const masterApi = {
   },
 };
 
+export const importApi = {
+  stageUpload: async (formData) => {
+    return apiFetch('/api/modules/bpms/imports/stage', {
+      method: 'POST',
+      body: formData,
+    });
+  },
+  listBatches: async ({ page = 1, pageSize = 10 } = {}) => {
+    const params = new URLSearchParams({
+      page: String(page),
+      pageSize: String(pageSize),
+    });
+    return apiFetch(`/api/modules/bpms/imports/batches?${params.toString()}`, {
+      method: 'GET',
+    });
+  },
+  getBatch: async (batchId) => {
+    return apiFetch(`/api/modules/bpms/imports/${encodeURIComponent(batchId)}`, {
+      method: 'GET',
+    });
+  },
+  getStagedRows: async (batchId, { page = 1, pageSize = 20, filter = 'ALL' } = {}) => {
+    const params = new URLSearchParams({
+      page: String(page),
+      pageSize: String(pageSize),
+      filter,
+    });
+    return apiFetch(`/api/modules/bpms/imports/${encodeURIComponent(batchId)}/rows?${params.toString()}`, {
+      method: 'GET',
+    });
+  },
+  commitBatch: async (batchId) => {
+    return apiFetch(`/api/modules/bpms/imports/${encodeURIComponent(batchId)}/commit`, {
+      method: 'POST',
+    });
+  },
+};
+
 
