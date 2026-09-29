@@ -14,7 +14,7 @@
     "dev": "npm run dev --workspaces",
     "dev:client": "npm run dev --workspace=detector-client",
     "dev:server": "npm run dev --workspace=detector-server",
-    "db:migrate": "npm run db:migrate --workspace=detector-server",
+    "db:migrate": "npm run --workspace=detector-server db:migrate",
     "build": "npm run build --workspaces --if-present",
     "lint": "eslint .",
     "oxlint": "oxlint -c oxlint.config.json"
@@ -26,5 +26,6 @@
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.12.0",
     "oxlint": "^1.85.0"
-  }
+  },
+  "author": "Harshad Gurnule"
 }
