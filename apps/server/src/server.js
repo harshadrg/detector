@@ -8,6 +8,7 @@ import rbacRoutes from './routes/rbac.routes.js';
 import auditRoutes from './routes/audit.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
 import masterRoutes from './routes/master.routes.js';
+import importRoutes from './routes/import.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -37,6 +38,7 @@ app.use('/api/core/notifications', notificationRoutes);
 
 // BPMS Operational Module Routes
 app.use('/api/modules/bpms/masters', masterRoutes);
+app.use('/api/modules/bpms/imports', importRoutes);
 
 // Standard 404 Handler
 app.use((_req, res) => {
