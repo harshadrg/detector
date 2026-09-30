@@ -119,7 +119,7 @@ This roadmap governs the phased engineering delivery of the **Detector Enterpris
 ---
 
 ### Phase 8: BPMS Process Registry & Server-Side AG Grid Engine
-- **Status:** `PENDING` (`[ ]`)
+- **Status:** `COMPLETED` (`[x]`)
 - **Objectives:**
   - Implement server-side paginated, sorted, and filtered process query endpoint (`/api/modules/bpms/processes`).
   - Enrich each process record with current 5-level hierarchy owners and computed row-level `capabilities`.
