@@ -11,6 +11,7 @@ import { EmployeeDirectory } from './components/employees/EmployeeDirectory.jsx'
 import { AuditLedger } from './components/audit/AuditLedger.jsx';
 import { MasterDataManager } from './components/masters/MasterDataManager.jsx';
 import { ExcelIngestion } from './components/imports/ExcelIngestion.jsx';
+import { ProcessRegistry } from './components/processes/ProcessRegistry.jsx';
 
 function Shell() {
   const [currentTab, setCurrentTab] = useState('dashboard');
@@ -32,6 +33,8 @@ function Shell() {
               <MasterDataManager />
             ) : currentTab === 'imports' ? (
               <ExcelIngestion />
+            ) : currentTab === 'processes' ? (
+              <ProcessRegistry onNavigate={setCurrentTab} />
             ) : (
               <OperationalOverview onNavigate={setCurrentTab} />
             )}

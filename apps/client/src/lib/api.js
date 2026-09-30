@@ -363,4 +363,45 @@ export const importApi = {
   },
 };
 
+export const processApi = {
+  list: async ({
+    page = 1,
+    pageSize = 20,
+    search = '',
+    vertical_id = '',
+    sbu_id = '',
+    status = 'ALL',
+    client_type = '',
+    sortField = 'process_code',
+    sortDirection = 'ASC',
+  } = {}) => {
+    const params = new URLSearchParams({
+      page: String(page),
+      pageSize: String(pageSize),
+      sortField,
+      sortDirection,
+    });
+    if (search) params.set('search', search);
+    if (vertical_id) params.set('vertical_id', String(vertical_id));
+    if (sbu_id) params.set('sbu_id', String(sbu_id));
+    if (status && status !== 'ALL') params.set('status', status);
+    if (client_type && client_type !== 'ALL') params.set('client_type', client_type);
+
+    return apiFetch(`/api/modules/bpms/processes?${params.toString()}`, {
+      method: 'GET',
+    });
+  },
+  getById: async (registryId) => {
+    return apiFetch(`/api/modules/bpms/processes/${encodeURIComponent(registryId)}`, {
+      method: 'GET',
+    });
+  },
+  create: async (data) => {
+    return apiFetch('/api/modules/bpms/processes', {
+      method: 'POST',
+      body: data,
+    });
+  },
+};
+
 
