@@ -3,6 +3,7 @@ import { useAuth } from './context/useAuth.js';
 import { AppShell } from './components/layout/AppShell.jsx';
 import { SignIn } from './pages/auth/SignIn.jsx';
 import { EmployeeDirectory } from './pages/directory/EmployeeDirectory.jsx';
+import { ProcessRegistry } from './pages/registry/ProcessRegistry.jsx';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -22,7 +23,7 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
-// Temporary placeholder until Step 7.3+
+// Temporary placeholder until Step 7.4+
 function OverviewPlaceholder() {
   return <div className="p-8 text-center text-on-surface">Overview Page (Placeholder)</div>;
 }
@@ -45,6 +46,8 @@ export default function App() {
           <Route path="overview" element={<OverviewPlaceholder />} />
           <Route path="directory" element={<EmployeeDirectory />} />
           <Route path="employees" element={<Navigate to="/directory" replace />} />
+          <Route path="registry" element={<ProcessRegistry />} />
+          <Route path="processes" element={<Navigate to="/registry" replace />} />
           {/* Future routes will be added here */}
         </Route>
       </Routes>

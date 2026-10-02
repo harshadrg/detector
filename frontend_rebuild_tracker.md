@@ -94,11 +94,12 @@ This document tracks the phased execution of the capability-driven frontend rebu
   - **Stitch Dependencies:** `d3ea902a4f2f453d81f975a7271d8fa8`, `98f454db9c574cf3a85714a3e06cc589`.
   - **Status:** Complete.
 
-- [ ] **Step 7.3: BPMS Process Registry**
+- [x] **Step 7.3: BPMS Process Registry**
   - **Objective:** Implement the server-side AG Grid Process Registry.
   - **Prerequisites:** Step 6.1.
   - **Scope:** Process Registry page, connecting to `/api/modules/bpms/processes`.
   - **Stitch Dependencies:** `5f329f1982fc4c71a6264ddaee398958`.
+  - **Status:** Complete.
 
 - [ ] **Step 7.4: BPMS Process Detail & Review**
   - **Objective:** Build the tabbed Process Detail view and Side-by-Side Review.
