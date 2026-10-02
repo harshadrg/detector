@@ -1,7 +1,52 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router';
+import { useAuth } from './context/useAuth.js';
+import { AppShell } from './components/layout/AppShell.jsx';
+
+function ProtectedRoute({ children }) {
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <span className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
+// Temporary placeholders until Step 7
+function LoginPlaceholder() {
+  return <div className="p-8 text-center text-on-surface">Login Page (Phase 7.1)</div>;
+}
+function OverviewPlaceholder() {
+  return <div className="p-8 text-center text-on-surface">Overview Page (Placeholder)</div>;
+}
+
 export default function App() {
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-      <h1 className="text-2xl font-semibold text-primary">Detector Enterprise Platform</h1>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginPlaceholder />} />
+        
+        <Route 
+          path="/" 
+          element={
+            <ProtectedRoute>
+              <AppShell />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="/overview" replace />} />
+          <Route path="overview" element={<OverviewPlaceholder />} />
+          {/* Future routes will be added here */}
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }

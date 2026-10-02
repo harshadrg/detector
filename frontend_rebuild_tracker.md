@@ -72,11 +72,12 @@ This document tracks the phased execution of the capability-driven frontend rebu
   - **Status:** Complete.
 
 ### Layer 6: Routing and Application Shell
-- [ ] **Step 6.1: React Router Integration & App Shell**
+- [x] **Step 6.1: React Router Integration & App Shell**
   - **Objective:** Setup React Router v8 and build the global application layout (Sidebar, Header).
   - **Prerequisites:** Step 4.2, Step 5.2.
   - **Scope:** Implement `react-router` configuration, public/private route wrappers, and the main AppShell.
   - **Stitch Dependencies:** Any main dashboard screen (e.g., `192a1c56c2f045199e83ec3cfa92f9a0` Super Admin Operational Overview).
+  - **Status:** Complete.
 
 ### Layer 7: Feature and Page Assembly
 - [ ] **Step 7.1: Sign In Page**
