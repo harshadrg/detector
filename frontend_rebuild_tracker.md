@@ -36,10 +36,11 @@ This document tracks the phased execution of the capability-driven frontend rebu
   - **Backend Dependencies:** Server error contracts, CORS configuration.
   - **Status:** Complete.
 
-- [ ] **Step 3.2: TanStack Query Provider Setup**
+- [x] **Step 3.2: TanStack Query Provider Setup**
   - **Objective:** Integrate TanStack Query for server state management.
   - **Prerequisites:** Step 3.1.
   - **Scope:** Wrap application with `QueryClientProvider` and set up default query configurations.
+  - **Status:** Complete.
 
 ### Layer 4: Authentication, Session, and Capabilities
 - [ ] **Step 4.1: Auth State & Session Integration**
