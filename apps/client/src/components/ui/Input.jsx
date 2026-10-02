@@ -7,9 +7,11 @@ export const Input = forwardRef(({
   className = '', 
   wrapperClassName = '', 
   type = 'text',
+  startIcon: StartIcon,
+  endAction,
   ...props 
 }, ref) => {
-  const baseClasses = "block w-full rounded-lg bg-surface-container-lowest px-3.5 py-2.5 text-xs text-on-surface placeholder:text-outline focus:border-primary focus:ring-1 focus:ring-primary transition-all duration-150";
+  const baseClasses = "block w-full rounded-lg bg-surface-container-lowest px-3.5 py-2.5 text-xs text-on-surface placeholder:text-outline focus:border-primary focus:ring-1 focus:ring-primary transition-all duration-150 border";
   const stateClasses = error 
     ? "border-error focus:border-error focus:ring-error" 
     : "border-outline-variant/60";
@@ -22,13 +24,23 @@ export const Input = forwardRef(({
         </label>
       )}
       <div className="relative rounded-lg shadow-none">
+        {StartIcon && (
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant">
+            <StartIcon className="w-4 h-4" />
+          </div>
+        )}
         <input 
           ref={ref}
           id={id}
           type={type}
-          className={`${baseClasses} ${stateClasses} disabled:bg-surface-container-low disabled:text-on-surface/50 ${className}`}
+          className={`${baseClasses} ${stateClasses} ${StartIcon ? 'pl-9' : ''} ${endAction ? 'pr-10' : ''} disabled:bg-surface-container-low disabled:text-on-surface/50 ${className}`}
           {...props}
         />
+        {endAction && (
+          <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center">
+            {endAction}
+          </div>
+        )}
       </div>
       {error && (
         <p className="text-[11px] text-error font-medium mt-1">{error}</p>

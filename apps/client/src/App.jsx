@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router';
 import { useAuth } from './context/useAuth.js';
 import { AppShell } from './components/layout/AppShell.jsx';
+import { SignIn } from './pages/auth/SignIn.jsx';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -20,10 +21,7 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
-// Temporary placeholders until Step 7
-function LoginPlaceholder() {
-  return <div className="p-8 text-center text-on-surface">Login Page (Phase 7.1)</div>;
-}
+// Temporary placeholder until Step 7.2+
 function OverviewPlaceholder() {
   return <div className="p-8 text-center text-on-surface">Overview Page (Placeholder)</div>;
 }
@@ -32,7 +30,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<LoginPlaceholder />} />
+        <Route path="/login" element={<SignIn />} />
         
         <Route 
           path="/" 
