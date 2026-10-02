@@ -87,11 +87,12 @@ This document tracks the phased execution of the capability-driven frontend rebu
   - **Stitch Dependencies:** `52bc3d8132ba4ea9b690b8688d6d6d6c`.
   - **Status:** Complete.
 
-- [ ] **Step 7.2: Employee Directory**
+- [x] **Step 7.2: Employee Directory**
   - **Objective:** Implement the Employee Directory view and Modal.
   - **Prerequisites:** Step 6.1.
   - **Scope:** Build Employee list and "Add New Employee" modal.
   - **Stitch Dependencies:** `d3ea902a4f2f453d81f975a7271d8fa8`, `98f454db9c574cf3a85714a3e06cc589`.
+  - **Status:** Complete.
 
 - [ ] **Step 7.3: BPMS Process Registry**
   - **Objective:** Implement the server-side AG Grid Process Registry.

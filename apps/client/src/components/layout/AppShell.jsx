@@ -102,7 +102,7 @@ export function AppShell() {
             className="flex items-center gap-2.5 pl-1 cursor-pointer group"
           >
             <div className="w-8 h-8 rounded-full bg-primary-container/50 border border-primary/20 text-on-primary-container font-semibold text-xs flex items-center justify-center uppercase">
-              {user?.employeeCode?.substring(0, 2) || 'U'}
+              {(user?.ecode || user?.employeeCode || 'U').substring(0, 2)}
             </div>
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-semibold text-on-surface group-hover:text-primary transition-colors">

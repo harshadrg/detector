@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router';
 import { useAuth } from './context/useAuth.js';
 import { AppShell } from './components/layout/AppShell.jsx';
 import { SignIn } from './pages/auth/SignIn.jsx';
+import { EmployeeDirectory } from './pages/directory/EmployeeDirectory.jsx';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -21,7 +22,7 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
-// Temporary placeholder until Step 7.2+
+// Temporary placeholder until Step 7.3+
 function OverviewPlaceholder() {
   return <div className="p-8 text-center text-on-surface">Overview Page (Placeholder)</div>;
 }
@@ -42,6 +43,8 @@ export default function App() {
         >
           <Route index element={<Navigate to="/overview" replace />} />
           <Route path="overview" element={<OverviewPlaceholder />} />
+          <Route path="directory" element={<EmployeeDirectory />} />
+          <Route path="employees" element={<Navigate to="/directory" replace />} />
           {/* Future routes will be added here */}
         </Route>
       </Routes>
