@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/useAuth.js';
-import { employeeApi, masterApi, auditApi, importApi } from '../../lib/api.js';
+import { employeeApi, auditApi, processApi, changeRequestApi, handoverApi } from '../../lib/api.js';
 import {
   ShieldCheck,
   Users,
@@ -11,6 +11,9 @@ import {
   Key,
   RefreshCw,
   Loader2,
+  Activity,
+  FileClock,
+  UserCheck
 } from 'lucide-react';
 
 export function OperationalOverview({ onNavigate }) {
@@ -18,12 +21,10 @@ export function OperationalOverview({ onNavigate }) {
 
   const [metrics, setMetrics] = useState({
     totalEmployees: 0,
-    verticalsCount: 0,
-    sbusCount: 0,
-    clientsCount: 0,
-    locationsCount: 0,
+    activeProcesses: 0,
+    pendingReviews: 0,
+    handoverQueue: 0,
     recentAudits: [],
-    latestBatch: null,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -38,22 +39,21 @@ export function OperationalOverview({ onNavigate }) {
 
     async function loadTelemetry() {
       try {
-        const [empRes, masterRes, auditRes, batchRes] = await Promise.all([
+        const [empRes, auditRes, processRes, crRes, handoverRes] = await Promise.all([
           employeeApi.list({ pageSize: 1 }).catch(() => ({ meta: { totalCount: 0 } })),
-          masterApi.getAll().catch(() => ({ verticals: [], sbus: [], clients: [], locations: [] })),
           auditApi.getEvents({ pageSize: 4 }).catch(() => ({ events: [] })),
-          importApi.listBatches({ pageSize: 1 }).catch(() => ({ batches: [] })),
+          processApi.list({ status: 'ACTIVE', pageSize: 1 }).catch(() => ({ meta: { totalCount: 0 } })),
+          changeRequestApi.listPendingReviews().catch(() => ({ reviews: [] })),
+          handoverApi.listPendingHandovers().catch(() => ({ reviews: [] }))
         ]);
 
         if (isMounted) {
           setMetrics({
             totalEmployees: empRes.meta?.totalCount || 0,
-            verticalsCount: masterRes.verticals?.length || 0,
-            sbusCount: masterRes.sbus?.length || 0,
-            clientsCount: masterRes.clients?.length || 0,
-            locationsCount: masterRes.locations?.length || 0,
+            activeProcesses: processRes.meta?.totalCount || 0,
+            pendingReviews: crRes.reviews?.length || 0,
+            handoverQueue: handoverRes.reviews?.length || 0,
             recentAudits: auditRes.events || [],
-            latestBatch: batchRes.batches?.[0] || null,
           });
           setIsLoading(false);
         }
@@ -139,82 +139,68 @@ export function OperationalOverview({ onNavigate }) {
           </div>
         </div>
 
-        {/* Master Verticals & SBUs */}
+        {/* Active Processes */}
         <div
-          onClick={() => onNavigate && onNavigate('masters')}
+          onClick={() => onNavigate && onNavigate('processes')}
           className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:border-emerald-300 transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-              BPMS Structure
+              Active Processes
             </span>
             <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-              <Database className="w-4 h-4" />
+              <Activity className="w-4 h-4" />
             </div>
           </div>
           <div className="text-2xl font-bold text-slate-900 mt-2">
-            {isLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              `${metrics.verticalsCount} Verticals / ${metrics.sbusCount} SBUs`
-            )}
+            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : metrics.activeProcesses}
           </div>
           <div className="flex items-center text-[11px] text-emerald-600 font-medium mt-1">
-            <span>Manage catalogs</span>
+            <span>View process registry</span>
             <ArrowRight className="w-3 h-3 ml-1 group-hover:translate-x-0.5 transition-transform" />
           </div>
         </div>
 
-        {/* Clients & Locations */}
+        {/* Pending CR Reviews */}
         <div
-          onClick={() => onNavigate && onNavigate('masters')}
+          onClick={() => onNavigate && onNavigate('change-reviews')}
           className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:border-blue-300 transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-              Clients & Locations
+              Pending Reviews
             </span>
             <div className="p-2 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
-              <Database className="w-4 h-4" />
+              <FileClock className="w-4 h-4" />
             </div>
           </div>
           <div className="text-2xl font-bold text-slate-900 mt-2">
-            {isLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              `${metrics.clientsCount} Clients / ${metrics.locationsCount} Facilities`
-            )}
+            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : metrics.pendingReviews}
           </div>
           <div className="flex items-center text-[11px] text-blue-600 font-medium mt-1">
-            <span>View delivery centers</span>
+            <span>Review change requests</span>
             <ArrowRight className="w-3 h-3 ml-1 group-hover:translate-x-0.5 transition-transform" />
           </div>
         </div>
 
-        {/* Staged Excel Pipeline */}
+        {/* Handover Queue */}
         <div
-          onClick={() => onNavigate && onNavigate('imports')}
+          onClick={() => onNavigate && onNavigate('handovers')}
           className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:border-purple-300 transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-              Spreadsheet Ingestion
+              Handover Queue
             </span>
             <div className="p-2 bg-purple-50 text-purple-600 rounded-xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
-              <FileSpreadsheet className="w-4 h-4" />
+              <UserCheck className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-sm font-bold text-slate-900 mt-2 truncate">
-            {isLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : metrics.latestBatch ? (
-              `Batch #${metrics.latestBatch.batch_id} (${metrics.latestBatch.status})`
-            ) : (
-              'Ready for Ingestion'
-            )}
+          <div className="text-2xl font-bold text-slate-900 mt-2">
+            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : metrics.handoverQueue}
           </div>
           <div className="flex items-center text-[11px] text-purple-600 font-medium mt-1">
-            <span>Open ingestion pipeline</span>
+            <span>Process handovers</span>
             <ArrowRight className="w-3 h-3 ml-1 group-hover:translate-x-0.5 transition-transform" />
           </div>
         </div>

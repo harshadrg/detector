@@ -445,6 +445,30 @@ export async function updateEmployeeStatus(req, res) {
           : 'Employee account reactivated.',
     });
 
+    if (status === 'INACTIVE' && activeAssignments.length > 0) {
+      // Offboarding Safeguard: Automatically generate handover alerts to admins
+      const adminQuery = await query(
+        `SELECT DISTINCT e.ecode 
+         FROM dbo.Employees e
+         JOIN dbo.Employee_Role_Mapping erm ON erm.ecode = e.ecode
+         JOIN dbo.Roles r ON r.role_id = erm.role_id
+         WHERE r.role_category IN ('PLATFORM_ADMIN', 'MODULE_ADMIN') AND e.status = 'ACTIVE'`
+      );
+      const admins = adminQuery.recordset || [];
+      
+      for (const admin of admins) {
+        await notificationService.dispatch({
+          recipient_ecode: admin.ecode,
+          sender_ecode: req.user.ecode,
+          notification_type: 'WARNING',
+          entity_type: 'EMPLOYEE',
+          entity_id: ecode,
+          message: `Offboarding Alert: Employee ${ecode} was deactivated but has ${activeAssignments.length} active process ownership assignment(s). Immediate handover action is required.`,
+          action_url: `/bpms/employees/${ecode}`,
+        });
+      }
+    }
+
     await notificationService.dispatch({
       recipient_ecode: ecode,
       sender_ecode: req.user.ecode,

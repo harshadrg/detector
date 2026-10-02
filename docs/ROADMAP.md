@@ -26,7 +26,7 @@ This roadmap governs the phased engineering delivery of the **Detector Enterpris
 - [x] **Phase 10: BPMS Change Request Engine & Side-by-Side Review Workflow**
 - [x] **Phase 11: BPMS Scenario-Driven PM Handover Workflow & Zero Standing Privileges**
 - [x] **Phase 12: BPMS Process Closure & Lifecycle Deactivation Workflow**
-- [ ] **Phase 13: Platform Hardening, Offboarding Safeguards, Operational Dashboard & E2E Validation**
+- [x] **Phase 13: Platform Hardening, Offboarding Safeguards, Operational Dashboard & E2E Validation**
 
 ---
 
@@ -170,7 +170,7 @@ This roadmap governs the phased engineering delivery of the **Detector Enterpris
 ---
 
 ### Phase 13: Platform Hardening, Offboarding Safeguards, Operational Dashboard & E2E Validation
-- **Status:** `PENDING` (`[ ]`)
+- **Status:** `COMPLETED` (`[x]`)
 - **Objectives:**
   - Implement employee offboarding safeguard blocking or warning upon deactivation of employees with active ownership assignments, generating automated handover alerts.
   - Build role-scoped Operational Dashboard with real-time KPI metrics (Active Processes, Pending Reviews, Handover Queue, Recent Audits).
