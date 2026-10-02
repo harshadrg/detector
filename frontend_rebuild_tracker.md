@@ -50,10 +50,11 @@ This document tracks the phased execution of the capability-driven frontend rebu
   - **Backend Dependencies:** `/api/core/auth/*` endpoints.
   - **Status:** Complete.
 
-- [ ] **Step 4.2: Capability-Driven Authorization Engine**
+- [x] **Step 4.2: Capability-Driven Authorization Engine**
   - **Objective:** Build the frontend capability resolver to gate UI elements based on backend-provided capabilities.
   - **Prerequisites:** Step 4.1.
   - **Scope:** Create `useCapabilities` hook and `<RequireCapability>` wrapper component.
+  - **Status:** Complete.
 
 ### Layer 5: Atomic UI Component System
 - [ ] **Step 5.1: Core Primitives (Buttons, Inputs, Badges)**
