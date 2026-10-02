@@ -22,7 +22,7 @@ This roadmap governs the phased engineering delivery of the **Detector Enterpris
 - [ ] **Phase 6: BPMS Master Data Management (Verticals, SBUs, Clients & Locations)**
 - [ ] **Phase 7: BPMS Staged Excel Migration & Ingestion Pipeline**
 - [ ] **Phase 8: BPMS Process Registry & Server-Side AG Grid Engine**
-- [ ] **Phase 9: BPMS Process Detail & Unified Process Management View**
+- [x] **Phase 9: BPMS Process Detail & Unified Process Management View**
 - [ ] **Phase 10: BPMS Change Request Engine & Side-by-Side Review Workflow**
 - [ ] **Phase 11: BPMS Scenario-Driven PM Handover Workflow & Zero Standing Privileges**
 - [ ] **Phase 12: BPMS Process Closure & Lifecycle Deactivation Workflow**
@@ -129,7 +129,7 @@ This roadmap governs the phased engineering delivery of the **Detector Enterpris
 ---
 
 ### Phase 9: BPMS Process Detail & Unified Process Management View
-- **Status:** `PENDING` (`[ ]`)
+- **Status:** `COMPLETED` (`[x]`)
 - **Objectives:**
   - Build unified process management screen (`/bpms/processes/:id`) featuring a tabbed interface:
     - **Tab 1:** Approved Process Details & Current Hierarchy.

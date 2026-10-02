@@ -3,6 +3,7 @@ import {
   listProcesses,
   getProcessById,
   createProcess,
+  getOwnershipHistory,
 } from '../controllers/process.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 import {
@@ -37,6 +38,15 @@ router.post(
   contextSwitchMiddleware,
   requirePermission('BPMS.PROCESS.CREATE'),
   createProcess
+);
+
+// Process ownership history timeline
+router.get(
+  '/:id/ownership-history',
+  authenticate,
+  contextSwitchMiddleware,
+  requirePermission('BPMS.PROCESS.VIEW'),
+  getOwnershipHistory
 );
 
 export default router;

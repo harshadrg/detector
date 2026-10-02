@@ -164,3 +164,52 @@ export async function createProcess(req, res) {
     });
   }
 }
+
+export async function getOwnershipHistory(req, res) {
+  try {
+    const registryId = parseInt(req.params.id, 10);
+    if (isNaN(registryId)) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        error: {
+          code: 'INVALID_REGISTRY_ID',
+          message: 'Process ID must be an integer.',
+          details: [],
+        },
+      });
+    }
+
+    // First ensure they have access to the process (auth scope checked in getProcessById)
+    const process = await processService.getProcessById(req.user, registryId);
+    if (!process) {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        error: {
+          code: 'PROCESS_NOT_FOUND',
+          message: `Process with ID ${registryId} was not found or access is unauthorized.`,
+          details: [],
+        },
+      });
+    }
+
+    const history = await processService.getOwnershipHistory(req.user, registryId);
+
+    return res.status(200).json({
+      success: true,
+      data: { history },
+      error: null,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      data: null,
+      error: {
+        code: 'GET_OWNERSHIP_HISTORY_FAILED',
+        message: 'Failed to retrieve process ownership history.',
+        details: [error.message],
+      },
+    });
+  }
+}

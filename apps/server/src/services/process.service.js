@@ -453,7 +453,39 @@ export class ProcessService {
 
     return this.getProcessById(user, createdRegistryId);
   }
-}
+  /**
+   * Retrieves the historical ownership timeline for a process.
+   *
+   * @param {{ ecode: string }} user
+   * @param {number} registryId
+   * @returns {Promise<any[]>}
+   */
+  async getOwnershipHistory(user, registryId) {
+    const res = await query(
+      `SELECT 
+         po.ownership_id,
+         po.registry_id,
+         po.role_type,
+         po.employee_ecode,
+         e.name AS employee_name,
+         e.email AS employee_email,
+         po.effective_from,
+         po.effective_to,
+         po.is_current,
+         po.source_type,
+         po.assigned_by,
+         assigner.name AS assigned_by_name,
+         po.reason
+       FROM dbo.Process_Ownership po
+       JOIN dbo.Employees e ON e.ecode = po.employee_ecode
+       JOIN dbo.Employees assigner ON assigner.ecode = po.assigned_by
+       WHERE po.registry_id = @registryId
+       ORDER BY po.effective_from DESC, po.ownership_id DESC`,
+      { registryId: { type: sql.Int, value: registryId } }
+    );
 
+    return res.recordset || [];
+  }
+}
 export const processService = new ProcessService();
 export default processService;

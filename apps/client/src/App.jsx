@@ -12,16 +12,27 @@ import { AuditLedger } from './components/audit/AuditLedger.jsx';
 import { MasterDataManager } from './components/masters/MasterDataManager.jsx';
 import { ExcelIngestion } from './components/imports/ExcelIngestion.jsx';
 import { ProcessRegistry } from './components/processes/ProcessRegistry.jsx';
+import { ProcessDetailView } from './components/processes/ProcessDetailView.jsx';
 
 function Shell() {
   const [currentTab, setCurrentTab] = useState('dashboard');
+  const [activeProcessId, setActiveProcessId] = useState(null);
+
+  const handleNavigate = (tab, data = null) => {
+    setCurrentTab(tab);
+    if (tab === 'process_detail' && data?.id) {
+      setActiveProcessId(data.id);
+    } else {
+      setActiveProcessId(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       <Navbar />
 
       <div className="flex-1 flex">
-        <Sidebar currentTab={currentTab} onTabSelect={setCurrentTab} />
+        <Sidebar currentTab={currentTab} onTabSelect={handleNavigate} />
 
         <main className="flex-1 p-8 overflow-y-auto">
           <div className="max-w-6xl mx-auto">
@@ -34,9 +45,11 @@ function Shell() {
             ) : currentTab === 'imports' ? (
               <ExcelIngestion />
             ) : currentTab === 'processes' ? (
-              <ProcessRegistry onNavigate={setCurrentTab} />
+              <ProcessRegistry onNavigate={handleNavigate} />
+            ) : currentTab === 'process_detail' && activeProcessId ? (
+              <ProcessDetailView processId={activeProcessId} onNavigate={handleNavigate} />
             ) : (
-              <OperationalOverview onNavigate={setCurrentTab} />
+              <OperationalOverview onNavigate={handleNavigate} />
             )}
           </div>
         </main>

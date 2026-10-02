@@ -402,6 +402,11 @@ export const processApi = {
       body: data,
     });
   },
+  getOwnershipHistory: async (registryId) => {
+    return apiFetch(`/api/modules/bpms/processes/${encodeURIComponent(registryId)}/ownership-history`, {
+      method: 'GET',
+    });
+  },
 };
 
 

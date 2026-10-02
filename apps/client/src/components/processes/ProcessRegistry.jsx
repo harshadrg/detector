@@ -5,7 +5,6 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 
 import { processApi, masterApi } from '../../lib/api.js';
-import { ProcessDetailModal } from './ProcessDetailModal.jsx';
 import {
   GitBranch,
   Search,
@@ -38,8 +37,6 @@ export function ProcessRegistry({ onNavigate }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Detail Modal State
-  const [selectedProcess, setSelectedProcess] = useState(null);
   const gridRef = useRef(null);
 
   // Load Master Options for Filters
@@ -273,7 +270,7 @@ export function ProcessRegistry({ onNavigate }) {
               {/* View Capability Button */}
               {caps.includes('BPMS.PROCESS.VIEW') && (
                 <button
-                  onClick={() => setSelectedProcess(params.data)}
+                  onClick={() => onNavigate('process_detail', { id: params.data.registry_id })}
                   className="px-2.5 py-1 text-[11px] font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors cursor-pointer flex items-center space-x-1"
                   title="View Process Details & Hierarchy"
                 >
@@ -286,7 +283,7 @@ export function ProcessRegistry({ onNavigate }) {
         },
       },
     ],
-    []
+    [onNavigate]
   );
 
   const defaultColDef = useMemo(
@@ -448,7 +445,7 @@ export function ProcessRegistry({ onNavigate }) {
               columnDefs={columnDefs}
               defaultColDef={defaultColDef}
               rowSelection="single"
-              onRowDoubleClicked={(e) => setSelectedProcess(e.data)}
+              onRowDoubleClicked={(e) => onNavigate('process_detail', { id: e.data.registry_id })}
               animateRows={false}
               headerHeight={40}
               rowHeight={46}
@@ -487,13 +484,6 @@ export function ProcessRegistry({ onNavigate }) {
           </div>
         )}
       </div>
-
-      {/* Process Detail Modal */}
-      <ProcessDetailModal
-        isOpen={Boolean(selectedProcess)}
-        onClose={() => setSelectedProcess(null)}
-        process={selectedProcess}
-      />
     </div>
   );
 }
