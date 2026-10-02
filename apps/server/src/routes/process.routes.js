@@ -6,6 +6,7 @@ import {
   getOwnershipHistory,
 } from '../controllers/process.controller.js';
 import { submitChangeRequest } from '../controllers/change-request.controller.js';
+import { requestHandover } from '../controllers/handover.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 import {
   contextSwitchMiddleware,
@@ -55,8 +56,17 @@ router.post(
   '/:id/change-requests',
   authenticate,
   contextSwitchMiddleware,
-  requirePermission('BPMS.CHANGE_REQUEST.DRAFT'), // Assuming DRAFT permission covers SUBMIT based on ABAC, but here just checking DRAFT. Or we might use a custom scope. We'll use DRAFT here.
+  requirePermission('BPMS.CHANGE_REQUEST.DRAFT'), 
   submitChangeRequest
+);
+
+// Submit a handover request for a specific process
+router.post(
+  '/:id/handovers',
+  authenticate,
+  contextSwitchMiddleware,
+  requirePermission('BPMS.HANDOVER.REQUEST'),
+  requestHandover
 );
 
 export default router;

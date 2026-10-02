@@ -11,6 +11,7 @@ import masterRoutes from './routes/master.routes.js';
 import importRoutes from './routes/import.routes.js';
 import processRoutes from './routes/process.routes.js';
 import changeRequestRoutes from './routes/change-request.routes.js';
+import handoverRoutes from './routes/handover.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -43,6 +44,7 @@ app.use('/api/modules/bpms/masters', masterRoutes);
 app.use('/api/modules/bpms/imports', importRoutes);
 app.use('/api/modules/bpms/processes', processRoutes);
 app.use('/api/modules/bpms/change-requests', changeRequestRoutes);
+app.use('/api/modules/bpms/handovers', handoverRoutes);
 
 // Standard 404 Handler
 app.use((_req, res) => {
