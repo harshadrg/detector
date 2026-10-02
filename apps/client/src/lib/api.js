@@ -111,7 +111,14 @@ export async function apiFetch(endpoint, options = {}) {
     );
   }
 
-  return jsonResult.data;
+  const result = jsonResult.data;
+
+  // Attach pagination meta if the response envelope includes it
+  if (jsonResult.meta && result && typeof result === 'object') {
+    result.meta = jsonResult.meta;
+  }
+
+  return result;
 }
 
 export const authApi = {

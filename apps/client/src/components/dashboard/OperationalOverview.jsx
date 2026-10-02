@@ -4,9 +4,7 @@ import { employeeApi, auditApi, processApi, changeRequestApi, handoverApi } from
 import {
   ShieldCheck,
   Users,
-  Database,
   ScrollText,
-  FileSpreadsheet,
   ArrowRight,
   Key,
   RefreshCw,
@@ -44,7 +42,7 @@ export function OperationalOverview({ onNavigate }) {
           auditApi.getEvents({ pageSize: 4 }).catch(() => ({ events: [] })),
           processApi.list({ status: 'ACTIVE', pageSize: 1 }).catch(() => ({ meta: { totalCount: 0 } })),
           changeRequestApi.listPendingReviews().catch(() => ({ reviews: [] })),
-          handoverApi.listPendingHandovers().catch(() => ({ reviews: [] }))
+          handoverApi.listPendingHandovers().catch(() => ({ handovers: [] }))
         ]);
 
         if (isMounted) {
@@ -52,7 +50,7 @@ export function OperationalOverview({ onNavigate }) {
             totalEmployees: empRes.meta?.totalCount || 0,
             activeProcesses: processRes.meta?.totalCount || 0,
             pendingReviews: crRes.reviews?.length || 0,
-            handoverQueue: handoverRes.reviews?.length || 0,
+            handoverQueue: handoverRes.handovers?.length || 0,
             recentAudits: auditRes.events || [],
           });
           setIsLoading(false);
