@@ -7,7 +7,7 @@ import { handoverApi } from '../../lib/api.js';
 import { useAuth } from '../../context/useAuth.js';
 
 export function HandoverReviewQueue() {
-  const { capabilities } = useAuth();
+  const { hasPermission } = useAuth();
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -77,7 +77,7 @@ export function HandoverReviewQueue() {
     });
   };
 
-  if (!capabilities.includes('BPMS.HANDOVER.APPROVE')) {
+  if (!hasPermission('BPMS.HANDOVER.APPROVE')) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-slate-500">
         <Shield className="w-12 h-12 text-slate-300 mb-4" />
