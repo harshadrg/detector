@@ -7,7 +7,7 @@ import { authenticate } from '../middleware/auth.middleware.js';
 import {
   requirePermission,
   contextSwitchMiddleware,
-} from '../middleware/rbac.middleware.js';
+} from '../middleware/authorize.middleware.js';
 
 const router = express.Router();
 
