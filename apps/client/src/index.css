@@ -3,27 +3,86 @@
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-headline: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-label: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px; /* ROUND_EIGHT */
+  --radius-xl: 12px;
+
+  /* Baseline colors from Stitch */
+  --color-primary: #5b5a8b;
+  --color-on-primary: #fbf7ff;
+  --color-primary-container: #bbb9f1;
+  --color-on-primary-container: #363564;
+  --color-primary-fixed: #bbb9f1;
+  --color-on-primary-fixed: #21204d;
+  --color-primary-fixed-dim: #adabe2;
+  --color-on-primary-fixed-variant: #3f3e6e;
+  --color-primary-dim: #4f4e7e;
+
+  --color-secondary: #5e5d72;
+  --color-on-secondary: #fbf7ff;
+  --color-secondary-container: #e3e0f9;
+  --color-on-secondary-container: #515064;
+  --color-secondary-fixed: #e3e0f9;
+  --color-on-secondary-fixed: #3e3d51;
+  --color-secondary-fixed-dim: #d5d2eb;
+  --color-on-secondary-fixed-variant: #5b596e;
+  --color-secondary-dim: #525166;
+
+  --color-tertiary: #755478;
+  --color-on-tertiary: #fff7fa;
+  --color-tertiary-container: #fdd2fd;
+  --color-on-tertiary-container: #654568;
+  --color-tertiary-fixed: #fdd2fd;
+  --color-on-tertiary-fixed: #513254;
+  --color-tertiary-fixed-dim: #eec4ef;
+  --color-on-tertiary-fixed-variant: #704e72;
+  --color-tertiary-dim: #68486b;
+
+  --color-error: #a8364b;
+  --color-on-error: #fff7f7;
+  --color-error-container: #f97386;
+  --color-on-error-container: #6e0523;
+  --color-error-dim: #6b0221;
+
+  --color-background: #fcf8fe;
+  --color-on-background: #32313b;
+
+  --color-surface: #fcf8fe;
+  --color-on-surface: #32313b;
+  --color-surface-variant: #e4e1ed;
+  --color-on-surface-variant: #5f5e68;
+  --color-surface-dim: #dcd8e4;
+  --color-surface-bright: #fcf8fe;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f6f2fa;
+  --color-surface-container: #f0ecf6;
+  --color-surface-container-high: #eae6f1;
+  --color-surface-container-highest: #e4e1ed;
+  --color-surface-tint: #5b5a8b;
+
+  --color-inverse-surface: #0e0e12;
+  --color-inverse-on-surface: #9e9ca2;
+  --color-inverse-primary: #bbb9f1;
+
+  --color-outline: #7b7984;
+  --color-outline-variant: #b3b0bc;
   
-  --color-primary: #4F46E5;
-  --color-primary-hover: #4338CA;
-  
-  --color-secondary: #7C3AED;
-  --color-secondary-hover: #6D28D9;
-  
-  --color-success: #10B981;
-  --color-success-hover: #059669;
-  
-  --color-warning: #F59E0B;
-  --color-warning-hover: #D97706;
-  
-  --color-error: #F43F5E;
-  --color-error-hover: #E11D48;
+  /* Additional aliases mapped to common Tailwind names if needed */
+  --color-bg-primary: var(--color-background);
+  --color-bg-secondary: var(--color-surface-container-low);
+  --color-border-primary: var(--color-outline-variant);
+  --color-border-focus: var(--color-primary);
 }
 
 body {
   margin: 0;
-  background-color: var(--color-slate-50, #f8fafc);
-  color: var(--color-slate-900, #0f172a);
+  background-color: var(--color-background);
+  color: var(--color-on-background);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

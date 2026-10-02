@@ -21,11 +21,12 @@ This document tracks the phased execution of the capability-driven frontend rebu
   - **Status:** Complete.
 
 ### Layer 2: Design Tokens and Styling Foundation
-- [ ] **Step 2.1: Implement Design System Tokens**
+- [x] **Step 2.1: Implement Design System Tokens**
   - **Objective:** Configure Tailwind v4 `@theme` with Stitch design system colors, typography, spacing, and radii.
   - **Prerequisites:** Step 1.1.
   - **Scope:** Update `apps/client/src/index.css` and `tailwind` configurations based on Stitch project metadata.
   - **Stitch Dependencies:** Project `1783953047780622398` metadata and `DESIGN_SYSTEM_INSTANCE` (`assets_8981359102164565870`).
+  - **Status:** Complete.
 
 ### Layer 3: API and Data Layer
 - [ ] **Step 3.1: Centralized API Client**
