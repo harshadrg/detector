@@ -88,7 +88,10 @@ export async function apiFetch(endpoint, options = {}) {
     credentials: options.credentials || 'include',
   };
 
-  const response = await fetch(endpoint, config);
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+  const url = baseUrl ? `${baseUrl}${endpoint.replace(/^\/api/, '')}` : endpoint;
+
+  const response = await fetch(url, config);
 
   let jsonResult;
   try {

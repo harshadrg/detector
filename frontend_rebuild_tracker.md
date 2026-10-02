@@ -29,11 +29,12 @@ This document tracks the phased execution of the capability-driven frontend rebu
   - **Status:** Complete.
 
 ### Layer 3: API and Data Layer
-- [ ] **Step 3.1: Centralized API Client**
+- [x] **Step 3.1: Centralized API Client**
   - **Objective:** Implement a native `fetch` wrapper handling base URLs, JSON parsing, CSRF, and global error handling.
   - **Prerequisites:** Step 1.1.
   - **Scope:** Create `apps/client/src/lib/api.ts` (or `.js`) for HTTP requests.
   - **Backend Dependencies:** Server error contracts, CORS configuration.
+  - **Status:** Complete.
 
 - [ ] **Step 3.2: TanStack Query Provider Setup**
   - **Objective:** Integrate TanStack Query for server state management.
