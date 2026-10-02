@@ -57,11 +57,12 @@ This document tracks the phased execution of the capability-driven frontend rebu
   - **Status:** Complete.
 
 ### Layer 5: Atomic UI Component System
-- [ ] **Step 5.1: Core Primitives (Buttons, Inputs, Badges)**
+- [x] **Step 5.1: Core Primitives (Buttons, Inputs, Badges)**
   - **Objective:** Implement base UI components matching Stitch designs.
   - **Prerequisites:** Step 2.1.
   - **Scope:** Build Button, Input, Badge components in `apps/client/src/components/ui/`.
   - **Stitch Dependencies:** Sign In screen (`52bc3d8132ba4ea9b690b8688d6d6d6c`) and Design System instance.
+  - **Status:** Complete.
 
 - [ ] **Step 5.2: Layout Components (Modals, Cards, Tables)**
   - **Objective:** Implement layout primitives (Cards, Modals) and setup base AG Grid configuration.
