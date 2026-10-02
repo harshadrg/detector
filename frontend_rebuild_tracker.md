@@ -64,11 +64,12 @@ This document tracks the phased execution of the capability-driven frontend rebu
   - **Stitch Dependencies:** Sign In screen (`52bc3d8132ba4ea9b690b8688d6d6d6c`) and Design System instance.
   - **Status:** Complete.
 
-- [ ] **Step 5.2: Layout Components (Modals, Cards, Tables)**
+- [x] **Step 5.2: Layout Components (Modals, Cards, Tables)**
   - **Objective:** Implement layout primitives (Cards, Modals) and setup base AG Grid configuration.
   - **Prerequisites:** Step 5.1.
   - **Scope:** Build Modal, Card, and Table wrapper components.
   - **Stitch Dependencies:** Audit Ledger, Modal states screens.
+  - **Status:** Complete.
 
 ### Layer 6: Routing and Application Shell
 - [ ] **Step 6.1: React Router Integration & App Shell**
