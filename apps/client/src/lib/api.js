@@ -413,6 +413,12 @@ export const processApi = {
       body: data,
     });
   },
+  requestHandover: async (registryId, data) => {
+    return apiFetch(`/api/modules/bpms/processes/${encodeURIComponent(registryId)}/handovers`, {
+      method: 'POST',
+      body: data,
+    });
+  },
 };
 
 export const changeRequestApi = {
@@ -423,6 +429,20 @@ export const changeRequestApi = {
   },
   review: async (crId, data) => {
     return apiFetch(`/api/modules/bpms/change-requests/${encodeURIComponent(crId)}/review`, {
+      method: 'POST',
+      body: data,
+    });
+  },
+};
+
+export const handoverApi = {
+  listPendingHandovers: async () => {
+    return apiFetch('/api/modules/bpms/handovers/reviews', {
+      method: 'GET',
+    });
+  },
+  review: async (handoverId, data) => {
+    return apiFetch(`/api/modules/bpms/handovers/${encodeURIComponent(handoverId)}/review`, {
       method: 'POST',
       body: data,
     });

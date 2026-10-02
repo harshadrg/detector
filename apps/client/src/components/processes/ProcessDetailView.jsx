@@ -14,6 +14,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { ProcessChangeRequestForm } from './ProcessChangeRequestForm.jsx';
+import { ProcessHandoverModal } from './ProcessHandoverModal.jsx';
 
 export function ProcessDetailView({ processId, onNavigate }) {
   const [activeTab, setActiveTab] = useState('details'); // details, draft, ownership, audit
@@ -23,6 +24,7 @@ export function ProcessDetailView({ processId, onNavigate }) {
   const [auditEvents, setAuditEvents] = useState([]);
   
   const [isLoading, setIsLoading] = useState(true);
+  const [isHandoverModalOpen, setIsHandoverModalOpen] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -132,12 +134,18 @@ export function ProcessDetailView({ processId, onNavigate }) {
         {/* Contextual Actions */}
         <div className="flex items-center space-x-2">
           {capabilities.includes('BPMS.HANDOVER.REQUEST') && (
-            <button className="px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-xs font-semibold rounded-xl transition-colors cursor-pointer">
+            <button 
+              onClick={() => setIsHandoverModalOpen(true)}
+              className="px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+            >
               Request Handover
             </button>
           )}
           {capabilities.includes('BPMS.PROCESS.DEACTIVATE') && (
-            <button className="px-4 py-2 bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 text-xs font-semibold rounded-xl transition-colors cursor-pointer">
+            <button 
+              onClick={() => setActiveTab('draft')} // Let them request deactivation via draft tab
+              className="px-4 py-2 bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+            >
               Request Deactivation
             </button>
           )}
@@ -360,6 +368,16 @@ export function ProcessDetailView({ processId, onNavigate }) {
           </div>
         )}
       </div>
+
+      <ProcessHandoverModal 
+        isOpen={isHandoverModalOpen}
+        onClose={() => setIsHandoverModalOpen(false)}
+        process={proc}
+        onSuccess={() => {
+          setIsHandoverModalOpen(false);
+          // Optional: re-fetch or show toast
+        }}
+      />
     </div>
   );
 }

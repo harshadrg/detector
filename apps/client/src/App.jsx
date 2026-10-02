@@ -14,6 +14,7 @@ import { ExcelIngestion } from './components/imports/ExcelIngestion.jsx';
 import { ProcessRegistry } from './components/processes/ProcessRegistry.jsx';
 import { ProcessDetailView } from './components/processes/ProcessDetailView.jsx';
 import { ReviewQueue } from './components/reviews/ReviewQueue.jsx';
+import { HandoverReviewQueue } from './components/reviews/HandoverReviewQueue.jsx';
 
 function Shell() {
   const [currentTab, setCurrentTab] = useState('dashboard');
@@ -51,6 +52,8 @@ function Shell() {
               <ProcessDetailView processId={activeProcessId} onNavigate={handleNavigate} />
             ) : currentTab === 'reviews' ? (
               <ReviewQueue />
+            ) : currentTab === 'handovers' ? (
+              <HandoverReviewQueue />
             ) : (
               <OperationalOverview onNavigate={handleNavigate} />
             )}
