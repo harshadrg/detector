@@ -13,6 +13,7 @@ import { MasterDataManager } from './components/masters/MasterDataManager.jsx';
 import { ExcelIngestion } from './components/imports/ExcelIngestion.jsx';
 import { ProcessRegistry } from './components/processes/ProcessRegistry.jsx';
 import { ProcessDetailView } from './components/processes/ProcessDetailView.jsx';
+import { ReviewQueue } from './components/reviews/ReviewQueue.jsx';
 
 function Shell() {
   const [currentTab, setCurrentTab] = useState('dashboard');
@@ -48,6 +49,8 @@ function Shell() {
               <ProcessRegistry onNavigate={handleNavigate} />
             ) : currentTab === 'process_detail' && activeProcessId ? (
               <ProcessDetailView processId={activeProcessId} onNavigate={handleNavigate} />
+            ) : currentTab === 'reviews' ? (
+              <ReviewQueue />
             ) : (
               <OperationalOverview onNavigate={handleNavigate} />
             )}

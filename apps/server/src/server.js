@@ -10,6 +10,7 @@ import notificationRoutes from './routes/notification.routes.js';
 import masterRoutes from './routes/master.routes.js';
 import importRoutes from './routes/import.routes.js';
 import processRoutes from './routes/process.routes.js';
+import changeRequestRoutes from './routes/change-request.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -41,6 +42,7 @@ app.use('/api/core/notifications', notificationRoutes);
 app.use('/api/modules/bpms/masters', masterRoutes);
 app.use('/api/modules/bpms/imports', importRoutes);
 app.use('/api/modules/bpms/processes', processRoutes);
+app.use('/api/modules/bpms/change-requests', changeRequestRoutes);
 
 // Standard 404 Handler
 app.use((_req, res) => {

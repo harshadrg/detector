@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   XCircle,
 } from 'lucide-react';
+import { ProcessChangeRequestForm } from './ProcessChangeRequestForm.jsx';
 
 export function ProcessDetailView({ processId, onNavigate }) {
   const [activeTab, setActiveTab] = useState('details'); // details, draft, ownership, audit
@@ -277,20 +278,11 @@ export function ProcessDetailView({ processId, onNavigate }) {
 
         {/* TAB 2: CHANGE REQUEST DRAFT */}
         {activeTab === 'draft' && (
-          <div className="p-8 flex flex-col items-center justify-center text-center h-[400px]">
-            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-              <FileEdit className="w-8 h-8 text-slate-400" />
-            </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Change Request Editor</h3>
-            <p className="text-sm text-slate-500 max-w-md">
-              Drafting change requests is scheduled for Phase 10. You will be able to propose modifications to WPS, Clients, or Hierarchy here.
-            </p>
-            {capabilities.includes('BPMS.CHANGE_REQUEST.DRAFT') && (
-              <button disabled className="mt-6 px-4 py-2 bg-indigo-600/50 text-white text-xs font-semibold rounded-xl cursor-not-allowed">
-                Draft New Request (Locked)
-              </button>
-            )}
-          </div>
+          <ProcessChangeRequestForm
+            process={proc}
+            capabilities={capabilities}
+            onNavigate={onNavigate}
+          />
         )}
 
         {/* TAB 3: OWNERSHIP HISTORY */}

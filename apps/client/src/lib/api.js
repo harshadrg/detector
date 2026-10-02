@@ -407,6 +407,26 @@ export const processApi = {
       method: 'GET',
     });
   },
+  submitChangeRequest: async (registryId, data) => {
+    return apiFetch(`/api/modules/bpms/processes/${encodeURIComponent(registryId)}/change-requests`, {
+      method: 'POST',
+      body: data,
+    });
+  },
+};
+
+export const changeRequestApi = {
+  listPendingReviews: async () => {
+    return apiFetch('/api/modules/bpms/change-requests/reviews', {
+      method: 'GET',
+    });
+  },
+  review: async (crId, data) => {
+    return apiFetch(`/api/modules/bpms/change-requests/${encodeURIComponent(crId)}/review`, {
+      method: 'POST',
+      body: data,
+    });
+  },
 };
 
 

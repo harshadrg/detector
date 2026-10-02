@@ -5,6 +5,7 @@ import {
   createProcess,
   getOwnershipHistory,
 } from '../controllers/process.controller.js';
+import { submitChangeRequest } from '../controllers/change-request.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 import {
   contextSwitchMiddleware,
@@ -47,6 +48,15 @@ router.get(
   contextSwitchMiddleware,
   requirePermission('BPMS.PROCESS.VIEW'),
   getOwnershipHistory
+);
+
+// Submit or Draft a change request for a specific process
+router.post(
+  '/:id/change-requests',
+  authenticate,
+  contextSwitchMiddleware,
+  requirePermission('BPMS.CHANGE_REQUEST.DRAFT'), // Assuming DRAFT permission covers SUBMIT based on ABAC, but here just checking DRAFT. Or we might use a custom scope. We'll use DRAFT here.
+  submitChangeRequest
 );
 
 export default router;

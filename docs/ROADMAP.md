@@ -23,7 +23,7 @@ This roadmap governs the phased engineering delivery of the **Detector Enterpris
 - [ ] **Phase 7: BPMS Staged Excel Migration & Ingestion Pipeline**
 - [ ] **Phase 8: BPMS Process Registry & Server-Side AG Grid Engine**
 - [x] **Phase 9: BPMS Process Detail & Unified Process Management View**
-- [ ] **Phase 10: BPMS Change Request Engine & Side-by-Side Review Workflow**
+- [x] **Phase 10: BPMS Change Request Engine & Side-by-Side Review Workflow**
 - [ ] **Phase 11: BPMS Scenario-Driven PM Handover Workflow & Zero Standing Privileges**
 - [ ] **Phase 12: BPMS Process Closure & Lifecycle Deactivation Workflow**
 - [ ] **Phase 13: Platform Hardening, Offboarding Safeguards, Operational Dashboard & E2E Validation**
@@ -141,7 +141,7 @@ This roadmap governs the phased engineering delivery of the **Detector Enterpris
 ---
 
 ### Phase 10: BPMS Change Request Engine & Side-by-Side Review Workflow
-- **Status:** `PENDING` (`[ ]`)
+- **Status:** `COMPLETED` (`[x]`)
 - **Objectives:**
   - Implement `Process_Change_Requests` API (`DRAFT`, `SUBMITTED`, `UNDER_REVIEW`, `APPROVED`, `REJECTED`, `CANCELLED`).
   - Implement optimistic concurrency control using `version_num` on `Process_Registry`.
