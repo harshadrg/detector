@@ -24,7 +24,7 @@ This roadmap governs the phased engineering delivery of the **Detector Enterpris
 - [ ] **Phase 8: BPMS Process Registry & Server-Side AG Grid Engine**
 - [x] **Phase 9: BPMS Process Detail & Unified Process Management View**
 - [x] **Phase 10: BPMS Change Request Engine & Side-by-Side Review Workflow**
-- [ ] **Phase 11: BPMS Scenario-Driven PM Handover Workflow & Zero Standing Privileges**
+- [x] **Phase 11: BPMS Scenario-Driven PM Handover Workflow & Zero Standing Privileges**
 - [ ] **Phase 12: BPMS Process Closure & Lifecycle Deactivation Workflow**
 - [ ] **Phase 13: Platform Hardening, Offboarding Safeguards, Operational Dashboard & E2E Validation**
 
@@ -151,7 +151,7 @@ This roadmap governs the phased engineering delivery of the **Detector Enterpris
 ---
 
 ### Phase 11: BPMS Scenario-Driven PM Handover Workflow & Zero Standing Privileges
-- **Status:** `PENDING` (`[ ]`)
+- **Status:** `COMPLETED` (`[x]`)
 - **Objectives:**
   - Implement `/api/modules/bpms/processes/:id/handovers` supporting standard operational scenarios (`PM_MOVED_PROJECT`, `PM_ROLE_CHANGE`, `PM_LEFT_COMPANY`, `TEMPORARY_HANDOVER`, `ESCALATION`, `ADMIN_OVERRIDE`).
   - Implement atomic handover execution: close current PM ownership (`effective_to = now`), open new PM ownership (`effective_from = now`).
