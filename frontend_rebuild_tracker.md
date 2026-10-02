@@ -43,11 +43,12 @@ This document tracks the phased execution of the capability-driven frontend rebu
   - **Status:** Complete.
 
 ### Layer 4: Authentication, Session, and Capabilities
-- [ ] **Step 4.1: Auth State & Session Integration**
+- [x] **Step 4.1: Auth State & Session Integration**
   - **Objective:** Implement authentication store/context and fetch current user session (`/api/core/auth/me`).
   - **Prerequisites:** Step 3.2.
   - **Scope:** Create auth context, handle loading states, and integrate logout behavior.
   - **Backend Dependencies:** `/api/core/auth/*` endpoints.
+  - **Status:** Complete.
 
 - [ ] **Step 4.2: Capability-Driven Authorization Engine**
   - **Objective:** Build the frontend capability resolver to gate UI elements based on backend-provided capabilities.
