@@ -25,7 +25,7 @@ This roadmap governs the phased engineering delivery of the **Detector Enterpris
 - [x] **Phase 9: BPMS Process Detail & Unified Process Management View**
 - [x] **Phase 10: BPMS Change Request Engine & Side-by-Side Review Workflow**
 - [x] **Phase 11: BPMS Scenario-Driven PM Handover Workflow & Zero Standing Privileges**
-- [ ] **Phase 12: BPMS Process Closure & Lifecycle Deactivation Workflow**
+- [x] **Phase 12: BPMS Process Closure & Lifecycle Deactivation Workflow**
 - [ ] **Phase 13: Platform Hardening, Offboarding Safeguards, Operational Dashboard & E2E Validation**
 
 ---
@@ -161,7 +161,7 @@ This roadmap governs the phased engineering delivery of the **Detector Enterpris
 ---
 
 ### Phase 12: BPMS Process Closure & Lifecycle Deactivation Workflow
-- **Status:** `PENDING` (`[ ]`)
+- **Status:** `COMPLETED` (`[x]`)
 - **Objectives:**
   - Implement `PROCESS_END` change request workflow requiring operational closure date (`ended_on`) and closure remarks.
   - Transition `Process_Registry.status` to `INACTIVE` upon approval without destroying ownership history.

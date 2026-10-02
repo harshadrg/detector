@@ -118,6 +118,8 @@ export function ProcessDetailView({ processId, onNavigate }) {
                       ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                       : proc.status === 'TRANSITION'
                       ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                      : proc.status === 'INACTIVE'
+                      ? 'bg-red-50 text-red-700 border border-red-200'
                       : 'bg-slate-100 text-slate-700 border border-slate-200'
                   }`}
                 >
@@ -133,7 +135,7 @@ export function ProcessDetailView({ processId, onNavigate }) {
         
         {/* Contextual Actions */}
         <div className="flex items-center space-x-2">
-          {capabilities.includes('BPMS.HANDOVER.REQUEST') && (
+          {proc.status !== 'INACTIVE' && capabilities.includes('BPMS.HANDOVER.REQUEST') && (
             <button 
               onClick={() => setIsHandoverModalOpen(true)}
               className="px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
@@ -141,7 +143,7 @@ export function ProcessDetailView({ processId, onNavigate }) {
               Request Handover
             </button>
           )}
-          {capabilities.includes('BPMS.PROCESS.DEACTIVATE') && (
+          {proc.status !== 'INACTIVE' && capabilities.includes('BPMS.PROCESS.DEACTIVATE') && (
             <button 
               onClick={() => setActiveTab('draft')} // Let them request deactivation via draft tab
               className="px-4 py-2 bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
@@ -166,17 +168,19 @@ export function ProcessDetailView({ processId, onNavigate }) {
           <span>Details & Hierarchy</span>
         </button>
         
-        <button
-          onClick={() => setActiveTab('draft')}
-          className={`flex items-center space-x-2 px-4 py-3 text-xs font-semibold border-b-2 transition-colors cursor-pointer ${
-            activeTab === 'draft'
-              ? 'border-indigo-600 text-indigo-700 bg-indigo-50/50'
-              : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'
-          }`}
-        >
-          <FileEdit className="w-4 h-4" />
-          <span>Change Request</span>
-        </button>
+        {proc.status !== 'INACTIVE' && (
+          <button
+            onClick={() => setActiveTab('draft')}
+            className={`flex items-center space-x-2 px-4 py-3 text-xs font-semibold border-b-2 transition-colors cursor-pointer ${
+              activeTab === 'draft'
+                ? 'border-indigo-600 text-indigo-700 bg-indigo-50/50'
+                : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+            }`}
+          >
+            <FileEdit className="w-4 h-4" />
+            <span>Change Request</span>
+          </button>
+        )}
 
         <button
           onClick={() => setActiveTab('ownership')}

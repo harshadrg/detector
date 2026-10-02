@@ -20,6 +20,16 @@ export async function submitChangeRequest(req, res) {
       });
     }
 
+    if (data.change_type === 'PROCESS_DEACTIVATION') {
+      if (!data.proposed_data.ended_on || !data.proposed_data.closure_remarks) {
+        return res.status(400).json({
+          success: false,
+          data: null,
+          error: { code: 'VALIDATION_ERROR', message: 'ended_on and closure_remarks are required for PROCESS_DEACTIVATION.', details: [] },
+        });
+      }
+    }
+
     const actingContext = req.header('X-UI-Context-Role') || null;
     const result = await changeRequestService.submitChangeRequest(req.user, registryId, data, actingContext);
 
