@@ -4,11 +4,22 @@ import {
   ModuleRegistry, 
   ClientSideRowModelModule, 
   ValidationModule,
+  TextFilterModule,
+  NumberFilterModule,
+  DateFilterModule,
+  QuickFilterModule,
   themeQuartz 
 } from 'ag-grid-community';
 
-// Register standard AG Grid modules for client-side rendering
-ModuleRegistry.registerModules([ClientSideRowModelModule, ValidationModule]);
+// Register standard AG Grid modules for client-side rendering and filtering
+ModuleRegistry.registerModules([
+  ClientSideRowModelModule, 
+  ValidationModule,
+  TextFilterModule,
+  NumberFilterModule,
+  DateFilterModule,
+  QuickFilterModule
+]);
 
 const detectorTheme = themeQuartz.withParams({
   accentColor: '#5b5a8b',
