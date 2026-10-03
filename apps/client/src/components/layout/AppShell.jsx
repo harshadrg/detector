@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useLocation } from 'react-router';
 import { ShieldCheck, LayoutDashboard, GitFork, Users, LogOut, ClipboardCheck, ArrowRightLeft, UploadCloud, Database, History } from 'lucide-react';
 import { useAuth } from '../../context/useAuth.js';
+import { NotificationDrawer } from './NotificationDrawer.jsx';
 
 export function AppShell() {
   const { user, logout, activeContextRole } = useAuth();
@@ -161,6 +162,10 @@ export function AppShell() {
               </div>
             </div>
           )}
+
+          <div className="h-5 w-[1px] bg-outline-variant/30"></div>
+
+          <NotificationDrawer />
 
           <div className="h-5 w-[1px] bg-outline-variant/30"></div>
 

@@ -142,7 +142,7 @@ This document tracks the phased execution of the capability-driven frontend rebu
   - **Stitch Dependencies:** `0762160fcc464cbc91a15c5366c9dc15`, `2d4d65a3390949c2b9279b51f1aa0347`.
   - **Status:** Complete.
 
-- [ ] **Step 9.6: Notification Drawer Panel**
+- [x] **Step 9.6: Notification Drawer Panel**
   - **Objective:** Build the Notification Drawer accessible from the AppShell header.
   - **Stitch Dependencies:** `251165cd10474d6dabb282faf11e3a98`.
-  - **Status:** Pending.
+  - **Status:** Complete.
