@@ -53,11 +53,9 @@ export function RegisterProcess() {
                   <span className="text-[11px] text-on-surface-variant font-normal">Primary Sector</span>
                 </label>
                 <div className="relative">
+                  {/* TODO: Phase 6 - Fetch Vertical taxonomy from masterApi */}
                   <select id="vertical-select" className="w-full text-xs rounded-lg border border-outline-variant bg-surface-bright py-2.5 px-3 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
-                    <option value="BFSI">BFSI - Banking, Financial Services & Insurance</option>
-                    <option value="MEU">MEU - Manufacturing, Energy & Utilities</option>
-                    <option value="TECH">TECH&DIGITAL - Technology & Digital Platforms</option>
-                    <option value="EMERGING">EMERGING - High Growth & Venture Enterprise</option>
+                    <option value="">Select Vertical...</option>
                   </select>
                 </div>
                 <p className="text-[11px] text-on-surface-variant">Governing industry vertical taxonomy.</p>
@@ -68,10 +66,9 @@ export function RegisterProcess() {
                 <label className="text-xs font-semibold text-on-surface" htmlFor="sbu-select">
                   Strategic Business Unit (SBU) <span className="text-error">*</span>
                 </label>
+                {/* TODO: Phase 6 - Fetch SBUs dynamically based on Vertical via masterApi */}
                 <select id="sbu-select" className="w-full text-xs rounded-lg border border-outline-variant bg-surface-bright py-2.5 px-3 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
-                  <option value="BFSI-CORE">BFSI-CORE (Core Banking & Remittances)</option>
-                  <option value="BFSI-RISK">BFSI-RISK (Credit & Fraud Risk Operations)</option>
-                  <option value="BFSI-MKTS">BFSI-MKTS (Capital Markets & Custody)</option>
+                  <option value="">Select SBU...</option>
                 </select>
                 <p className="text-[11px] text-on-surface-variant">Cascades dynamically from selected Vertical taxonomy.</p>
               </div>
@@ -226,10 +223,9 @@ export function RegisterProcess() {
                 <UserCheck className="w-4 h-4 text-on-surface-variant" />
               </div>
               <span className="text-xs font-semibold text-on-surface truncate">OPS Quality Head</span>
+              {/* TODO: Phase 4 - Fetch applicable employees by role from employeeApi */}
               <div className="relative mt-1">
                 <select className="w-full text-[11px] rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none">
-                  <option>Rajesh K (E1005)</option>
-                  <option>Amit V (E1012)</option>
                   <option>Unassigned (Escalate)</option>
                 </select>
               </div>
@@ -242,10 +238,9 @@ export function RegisterProcess() {
                 <Building2 className="w-4 h-4 text-on-surface-variant" />
               </div>
               <span className="text-xs font-semibold text-on-surface truncate">CBO</span>
+              {/* TODO: Phase 4 - Fetch applicable employees by role from employeeApi */}
               <div className="relative mt-1">
                 <select className="w-full text-[11px] rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none">
-                  <option>Sameer C (E1002)</option>
-                  <option>Nalini S (E1009)</option>
                   <option>Unassigned (Escalate)</option>
                 </select>
               </div>
@@ -258,10 +253,9 @@ export function RegisterProcess() {
                 <UserCog className="w-4 h-4 text-on-surface-variant" />
               </div>
               <span className="text-xs font-semibold text-on-surface truncate">SBU Head</span>
+              {/* TODO: Phase 4 - Fetch applicable employees by role from employeeApi */}
               <div className="relative mt-1">
                 <select className="w-full text-[11px] rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none">
-                  <option>Saurabh F (E1006)</option>
-                  <option>Kavita D (E1014)</option>
                   <option>Unassigned (Escalate)</option>
                 </select>
               </div>
@@ -274,10 +268,9 @@ export function RegisterProcess() {
                 <Users className="w-4 h-4 text-on-surface-variant" />
               </div>
               <span className="text-xs font-semibold text-on-surface truncate">Account Head</span>
+              {/* TODO: Phase 4 - Fetch applicable employees by role from employeeApi */}
               <div className="relative mt-1">
                 <select className="w-full text-[11px] rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none">
-                  <option>Pooja G (E1003)</option>
-                  <option>Rohan B (E1019)</option>
                   <option>Unassigned (Escalate)</option>
                 </select>
               </div>
@@ -290,11 +283,10 @@ export function RegisterProcess() {
                 <User className="w-4 h-4 text-primary" />
               </div>
               <span className="text-xs font-semibold text-on-surface truncate">Project Manager</span>
+              {/* TODO: Phase 4 - Fetch applicable employees by role from employeeApi */}
               <div className="relative mt-1">
                 <select className="w-full text-[11px] font-medium rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none">
-                  <option>Rarata H (E1004) [Primary Owner]</option>
-                  <option>Vikram T (E1008)</option>
-                  <option>Arun N (E1022)</option>
+                  <option>Unassigned (Escalate)</option>
                 </select>
               </div>
             </div>

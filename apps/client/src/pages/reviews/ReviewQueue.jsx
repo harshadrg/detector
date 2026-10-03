@@ -42,51 +42,8 @@ export function ReviewQueue() {
   const changeRequests = reviews.filter(r => r.change_type !== 'PROCESS_DEACTIVATION');
   // const deactivationRequests = reviews.filter(r => r.change_type === 'PROCESS_DEACTIVATION');
 
-  // Hardcode fallback data since Phase 10 backend might not return the exact mock structures in the Stitch UI
-  const displayItems = changeRequests.length > 0 ? changeRequests : [
-    {
-      cr_id: 45,
-      cr_code: 'CR-0045',
-      registry_code: 'PRC-0128',
-      process_name: 'Market Research & Intel',
-      status: 'SUBMITTED',
-      priority: 'HIGH',
-      submitted_by: 'Amit R (E1008)',
-      submitted_time: '2 hours ago',
-      change_type: 'PROCESS_UPDATE',
-      proposed_fields: ['Client Name', 'WPS Code', 'Location', 'SBU Code'],
-      diff: {
-        client_name: { old: '— (Unassigned / Internal)', new: 'Nykaa E-Retail Ltd' },
-        wps_code: { old: 'WPS-EMG-003', new: 'WPS-EMG-019' },
-        location: { old: 'Gurgaon, Haryana - Tech Hub', new: 'Mumbai, Maharashtra - Andheri DC' },
-        sbu_code: { old: 'EMG-NEW', new: 'EMG-RET' }
-      }
-    },
-    {
-      cr_id: 42,
-      cr_code: 'CR-0042',
-      registry_code: 'PRC-0089',
-      process_name: 'Risk Analytics Platform',
-      status: 'UNDER_REVIEW',
-      priority: 'MEDIUM',
-      submitted_by: 'Saurabh F (E1006)',
-      submitted_time: '1 day ago',
-      change_type: 'POLICY_EXCEPTION',
-      proposed_fields: ['Escalation SLA', 'Backup PM Assignment']
-    },
-    {
-      cr_id: 38,
-      cr_code: 'CR-0038',
-      registry_code: 'PRC-0045',
-      process_name: 'Payment Gateway Operations',
-      status: 'SUBMITTED',
-      priority: 'NORMAL',
-      submitted_by: 'Pooja G (E1003)',
-      submitted_time: '3 days ago',
-      change_type: 'METADATA_CORRECTION',
-      proposed_fields: ['Facility Name', 'City Mapping']
-    }
-  ];
+  // TODO: Phase 10 - Connect fully to backend API for review details and diff structures once implemented.
+  const displayItems = changeRequests;
 
   const reviewMutation = useMutation({
     mutationFn: ({ crId, action, remarks }) => 
@@ -224,7 +181,7 @@ export function ReviewQueue() {
       {/* Cards Container */}
       <section className="flex flex-col gap-5">
         {currentTabItems.map((cr) => {
-          const isExpanded = expandedCr === cr.cr_id || (cr.cr_id === 45 && expandedCr === null); // Default expand 45
+          const isExpanded = expandedCr === cr.cr_id;
 
           if (isExpanded) {
             return (
@@ -398,18 +355,9 @@ export function ReviewQueue() {
                     <span className="text-on-surface font-medium">{cr.proposed_fields.join(', ')}</span>
                   </div>
                 </div>
-                {cr.cr_id === 45 ? (
-                  <Button 
-                    onClick={() => { setExpandedCr(cr.cr_id); setAuditRemarks(''); }}
-                    className="h-8 text-xs font-semibold px-3"
-                  >
-                    <Eye className="w-3.5 h-3.5 mr-1" /> Review
-                  </Button>
-                ) : (
-                  <Button variant="outline" onClick={() => { setExpandedCr(cr.cr_id); setAuditRemarks(''); }} className="h-8 text-xs font-semibold px-3 border-outline-variant/60 hover:bg-secondary-container hover:text-on-secondary-container">
-                    Continue Review <ArrowRight className="w-3.5 h-3.5 ml-1" />
-                  </Button>
-                )}
+                <Button variant="outline" onClick={() => { setExpandedCr(cr.cr_id); setAuditRemarks(''); }} className="h-8 text-xs font-semibold px-3 border-outline-variant/60 hover:bg-secondary-container hover:text-on-secondary-container">
+                  Continue Review <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                </Button>
               </div>
             </article>
           );

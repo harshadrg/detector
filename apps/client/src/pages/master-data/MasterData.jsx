@@ -126,152 +126,10 @@ export function MasterData() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/20 text-sm">
-                {/* ROW 1: BFSI */}
-                <tr className="hover:bg-surface-container/50 transition-colors duration-150 group">
-                  <td className="py-3.5 px-5 font-mono">
-                    <span className="bg-surface-container px-2.5 py-1 rounded text-xs font-semibold tracking-wider text-on-surface border border-outline-variant/40">
-                      BFSI
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-5 font-medium text-on-surface">
-                    <div className="flex items-center gap-2">
-                      <Landmark className="w-4 h-4 text-on-surface-variant" />
-                      <span>Banking, Financial Services & Insurance</span>
-                    </div>
-                  </td>
-                  <td className="py-3.5 px-5">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      <span>Active</span>
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-5 text-center">
-                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-surface-container text-xs font-semibold text-on-surface font-mono border border-outline-variant/30">
-                      4
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-5 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <button className="p-1.5 rounded-md text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors" title="Edit Vertical" type="button">
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button className="p-1.5 rounded-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="More Options" type="button">
-                        <MoreVertical className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                {/* ROW 2: MEU */}
-                <tr className="hover:bg-surface-container/50 transition-colors duration-150 group">
-                  <td className="py-3.5 px-5 font-mono">
-                    <span className="bg-surface-container px-2.5 py-1 rounded text-xs font-semibold tracking-wider text-on-surface border border-outline-variant/40">
-                      MEU
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-5 font-medium text-on-surface">
-                    <div className="flex items-center gap-2">
-                      <Factory className="w-4 h-4 text-on-surface-variant" />
-                      <span>Manufacturing, Engineering & Utilities</span>
-                    </div>
-                  </td>
-                  <td className="py-3.5 px-5">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      <span>Active</span>
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-5 text-center">
-                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-surface-container text-xs font-semibold text-on-surface font-mono border border-outline-variant/30">
-                      3
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-5 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <button className="p-1.5 rounded-md text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors" title="Edit Vertical" type="button">
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button className="p-1.5 rounded-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="More Options" type="button">
-                        <MoreVertical className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                {/* ROW 3: TECH&DIGITAL */}
-                <tr className="hover:bg-surface-container/50 transition-colors duration-150 group">
-                  <td className="py-3.5 px-5 font-mono">
-                    <span className="bg-surface-container px-2.5 py-1 rounded text-xs font-semibold tracking-wider text-on-surface border border-outline-variant/40">
-                      TECH&DIGITAL
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-5 font-medium text-on-surface">
-                    <div className="flex items-center gap-2">
-                      <MonitorSmartphone className="w-4 h-4 text-on-surface-variant" />
-                      <span>Technology & Digital</span>
-                    </div>
-                  </td>
-                  <td className="py-3.5 px-5">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      <span>Active</span>
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-5 text-center">
-                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-surface-container text-xs font-semibold text-on-surface font-mono border border-outline-variant/30">
-                      2
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-5 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <button className="p-1.5 rounded-md text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors" title="Edit Vertical" type="button">
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button className="p-1.5 rounded-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="More Options" type="button">
-                        <MoreVertical className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                {/* ROW 4: EMERGING (INLINE EDIT STATE) */}
-                <tr className="bg-secondary-container/20 border-l-4 border-l-primary transition-colors duration-150">
-                  <td className="py-3.5 px-5 font-mono">
-                    <span className="bg-primary/10 text-primary border border-primary/30 px-2.5 py-1 rounded text-xs font-bold tracking-wider">
-                      EMERGING
-                    </span>
-                  </td>
-                  {/* Editable Input Cell */}
-                  <td className="py-3.5 px-5">
-                    <div className="flex items-center gap-2 max-w-md">
-                      <div className="relative w-full">
-                        <input autoFocus className="w-full bg-surface-container-lowest border-2 border-primary ring-2 ring-primary-container/40 rounded-lg px-3 py-1.5 text-sm font-semibold text-on-surface focus:outline-none focus:border-primary shadow-xs" type="text" defaultValue="Emerging Business"/>
-                        <span className="absolute right-2 top-2 text-[10px] font-mono text-outline-variant uppercase">EDITING</span>
-                      </div>
-                    </div>
-                  </td>
-                  {/* Status */}
-                  <td className="py-3.5 px-5">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      <span>Active</span>
-                    </span>
-                  </td>
-                  {/* SBUs Count */}
-                  <td className="py-3.5 px-5 text-center">
-                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-surface-container text-xs font-semibold text-on-surface font-mono border border-outline-variant/30">
-                      1
-                    </span>
-                  </td>
-                  {/* Inline Edit Actions */}
-                  <td className="py-3.5 px-5 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-semibold bg-primary text-on-primary hover:bg-primary-dim transition-colors shadow-xs" title="Save changes" type="button">
-                        <Check className="w-4 h-4 font-bold" />
-                        <span>Save</span>
-                      </button>
-                      <button className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium border border-outline-variant text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" title="Cancel edit" type="button">
-                        <X className="w-4 h-4" />
-                        <span>Cancel</span>
-                      </button>
-                    </div>
+                {/* TODO: Phase 6 - Fetch and map master data (Verticals, SBUs, Clients, Locations) from masterApi */}
+                <tr>
+                  <td colSpan="5" className="py-8 text-center text-on-surface-variant text-sm">
+                    No data available.
                   </td>
                 </tr>
               </tbody>
@@ -282,7 +140,7 @@ export function MasterData() {
           <div className="px-6 py-3.5 bg-surface-container-low border-t border-outline-variant/40 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-on-surface-variant">
             <div className="flex items-center gap-2">
               <Info className="w-4 h-4 text-primary" />
-              <span>Showing <strong>4 of 4</strong> active verticals across <strong>10</strong> linked Strategic Business Units (SBUs)</span>
+              <span>Showing <strong>0</strong> active records</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5 font-mono text-[11px] text-outline">

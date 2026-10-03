@@ -26,49 +26,8 @@ export function PMHandovers() {
 
   const rawHandovers = data?.handovers || [];
 
-  // Hardcode fallback data since Phase 11 backend might not return the exact mock structures in the Stitch UI
-  const displayItems = rawHandovers.length > 0 ? rawHandovers : [
-    {
-      handover_id: 'HO-001',
-      registry_code: 'PRC-0089',
-      process_name: 'Risk Analytics Platform',
-      scenario: 'PM_LEFT_COMPANY',
-      from_pm: { init: 'RH', name: 'Rarata H', color: 'bg-surface-container-high text-on-surface' },
-      to_pm: { init: 'AR', name: 'Amit R', color: 'bg-primary-container text-on-primary-container' },
-      status: 'SUBMITTED',
-      requested_time: '5h ago'
-    },
-    {
-      handover_id: 'HO-002',
-      registry_code: 'PRC-0045',
-      process_name: 'Cloud Migration',
-      scenario: 'PM_MOVED_PROJECT',
-      from_pm: { init: 'PG', name: 'Pooja G', color: 'bg-surface-container-high text-on-surface' },
-      to_pm: { init: 'PM', name: 'Priya M', color: 'bg-primary-container text-on-primary-container' },
-      status: 'APPROVED',
-      requested_time: '2d ago'
-    },
-    {
-      handover_id: 'HO-003',
-      registry_code: 'PRC-0128',
-      process_name: 'Market Research & Intel',
-      scenario: 'ADMIN_OVERRIDE',
-      from_pm: null, // Unassigned
-      to_pm: { init: 'SF', name: 'Saurabh F', color: 'bg-primary-container text-on-primary-container' },
-      status: 'EXECUTED',
-      requested_time: '5d ago'
-    },
-    {
-      handover_id: 'HO-004',
-      registry_code: 'PRC-0012',
-      process_name: 'Payment Gateway Operations',
-      scenario: 'TEMPORARY_HANDOVER',
-      from_pm: { init: 'AR', name: 'Amit R', color: 'bg-surface-container-high text-on-surface' },
-      to_pm: { init: 'RK', name: 'Rajesh K', color: 'bg-primary-container text-on-primary-container' },
-      status: 'REJECTED',
-      requested_time: '1w ago'
-    }
-  ];
+  // TODO: Phase 11 - Connect fully to backend API for handover details and endpoints once implemented.
+  const displayItems = rawHandovers;
 
   const filteredItems = displayItems.filter(item => {
     const matchesSearch = item.handover_id.toLowerCase().includes(search.toLowerCase()) || 
