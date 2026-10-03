@@ -146,3 +146,8 @@ This document tracks the phased execution of the capability-driven frontend rebu
   - **Objective:** Build the Notification Drawer accessible from the AppShell header.
   - **Stitch Dependencies:** `251165cd10474d6dabb282faf11e3a98`.
   - **Status:** Complete.
+
+- [x] **Step 9.7: Register New Process (`/registry/new`)**
+  - **Objective:** Build the form interface to register a new process manually.
+  - **Stitch Dependencies:** `61af7319d84142c6b81b4b538f3f1dac`.
+  - **Status:** Complete.

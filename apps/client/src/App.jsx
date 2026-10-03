@@ -4,6 +4,7 @@ import { AppShell } from './components/layout/AppShell.jsx';
 import { SignIn } from './pages/auth/SignIn.jsx';
 import { EmployeeDirectory } from './pages/directory/EmployeeDirectory.jsx';
 import { ProcessRegistry } from './pages/registry/ProcessRegistry.jsx';
+import { RegisterProcess } from './pages/registry/RegisterProcess.jsx';
 import { ProcessDetail } from './pages/registry/ProcessDetail.jsx';
 import { OperationalOverview } from './pages/overview/OperationalOverview.jsx';
 import { ReviewQueue } from './pages/reviews/ReviewQueue.jsx';
@@ -49,6 +50,7 @@ export default function App() {
           <Route path="directory" element={<EmployeeDirectory />} />
           <Route path="employees" element={<Navigate to="/directory" replace />} />
           <Route path="registry" element={<ProcessRegistry />} />
+          <Route path="registry/new" element={<RegisterProcess />} />
           <Route path="registry/:id" element={<ProcessDetail />} />
           <Route path="processes" element={<Navigate to="/registry" replace />} />
           <Route path="processes/:id" element={<ProcessDetail />} />

@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation } from 'react-router';
-import { ShieldCheck, LayoutDashboard, GitFork, Users, LogOut, ClipboardCheck, ArrowRightLeft, UploadCloud, Database, History } from 'lucide-react';
+import { ShieldCheck, LayoutDashboard, GitFork, Users, LogOut, ClipboardCheck, ArrowRightLeft, UploadCloud, Database, History, PlusCircle } from 'lucide-react';
 import { useAuth } from '../../context/useAuth.js';
 import { NotificationDrawer } from './NotificationDrawer.jsx';
 
@@ -23,8 +23,19 @@ export function AppShell() {
             </div>
           </div>
 
+          {/* Action CTA */}
+          <div className="px-3 pt-4 pb-2">
+            <NavLink 
+              to="/registry/new"
+              className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-2 px-3 rounded-lg text-sm font-medium hover:bg-primary-dim transition-colors duration-150 shadow-sm"
+            >
+              <PlusCircle className="w-4 h-4 shrink-0" />
+              <span>New Process</span>
+            </NavLink>
+          </div>
+
           {/* Navigation Section */}
-          <nav className="p-3 space-y-1 mt-2">
+          <nav className="p-3 space-y-1">
             <NavLink 
               to="/overview" 
               className={({ isActive }) => 
