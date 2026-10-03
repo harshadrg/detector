@@ -101,14 +101,17 @@ This document tracks the phased execution of the capability-driven frontend rebu
   - **Stitch Dependencies:** `5f329f1982fc4c71a6264ddaee398958`.
   - **Status:** Complete.
 
-- [ ] **Step 7.4: BPMS Process Detail & Review**
+- [x] **Step 7.4: BPMS Process Detail & Review**
   - **Objective:** Build the tabbed Process Detail view and Side-by-Side Review.
   - **Prerequisites:** Step 7.3.
   - **Scope:** Process Detail page components, Change Request handling.
   - **Stitch Dependencies:** `4e5b3bb832aa48c0a8e0e15167f616f1`, `2ae6f391c057443c952ffdf2481bae9e`.
+  - **Status:** Complete.
 
 ### Layer 8: Validation and Production
-- [ ] **Step 8.1: E2E Validation & Hardening**
-  - **Objective:** Validate all workflows, perform security/XSS/capability checks.
+- [x] **Step 8.1: Operational Overview Dashboard & E2E Validation**
+  - **Objective:** Build the live Operational Overview dashboard (`/overview`) matching Stitch screen `192a1c56c2f045199e83ec3cfa92f9a0`, and execute complete E2E workflow validation and platform hardening.
   - **Prerequisites:** Step 7.4.
-  - **Scope:** Final testing, removing debug logs, validating responsive states.
+  - **Scope:** Create `pages/overview/OperationalOverview.jsx` with real-time KPI metrics, pending review triggers, recent processes list, and live audit feed; wire into `App.jsx`; validate responsive states; verify zero lint and build errors.
+  - **Stitch Dependencies:** `192a1c56c2f045199e83ec3cfa92f9a0`.
+  - **Status:** Complete.
