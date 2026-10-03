@@ -115,3 +115,34 @@ This document tracks the phased execution of the capability-driven frontend rebu
   - **Scope:** Create `pages/overview/OperationalOverview.jsx` with real-time KPI metrics, pending review triggers, recent processes list, and live audit feed; wire into `App.jsx`; validate responsive states; verify zero lint and build errors.
   - **Stitch Dependencies:** `192a1c56c2f045199e83ec3cfa92f9a0`.
   - **Status:** Complete.
+
+### Layer 9: Standalone Secondary Pages
+- [ ] **Step 9.1: Review Queue Page (`/reviews`)**
+  - **Objective:** Build the Review Queue page displaying pending change requests and handovers for module admins.
+  - **Stitch Dependencies:** `0c5915bd70e14a5b9320d28b0266c4fa`, `a033976e97514c88b442d07d056019d9`.
+  - **Status:** Pending.
+
+- [ ] **Step 9.2: PM Handovers Table (`/handovers`)**
+  - **Objective:** Build the dedicated PM Handovers management page.
+  - **Stitch Dependencies:** `39d7987a30004f1cab1b7c775f38f938`, `27e6fdaa8d3b41e989cc249c5ede9fe0`.
+  - **Status:** Pending.
+
+- [ ] **Step 9.3: Excel Import & Staging Pipeline (`/import`)**
+  - **Objective:** Build the Excel Import drag-and-drop UI and Staging Pipeline preview.
+  - **Stitch Dependencies:** `550af8089f914b8aa4ceda36e3daf90a`, `6afaf1e994cb4995a2327a0fe69598cf`.
+  - **Status:** Pending.
+
+- [ ] **Step 9.4: Master Data Management (`/master-data`)**
+  - **Objective:** Build the Master Data configuration interfaces (Verticals, SBUs, Clients, Locations).
+  - **Stitch Dependencies:** `e81e9599cc53412fb22bd8f65d251c69`.
+  - **Status:** Pending.
+
+- [ ] **Step 9.5: Global Audit Ledger (`/audit`)**
+  - **Objective:** Build the global immutable audit ledger table.
+  - **Stitch Dependencies:** `0762160fcc464cbc91a15c5366c9dc15`, `2d4d65a3390949c2b9279b51f1aa0347`.
+  - **Status:** Pending.
+
+- [ ] **Step 9.6: Notification Drawer Panel**
+  - **Objective:** Build the Notification Drawer accessible from the AppShell header.
+  - **Stitch Dependencies:** `251165cd10474d6dabb282faf11e3a98`.
+  - **Status:** Pending.

@@ -27,6 +27,8 @@ This roadmap governs the phased engineering delivery of the **Detector Enterpris
 - [x] **Phase 11: BPMS Scenario-Driven PM Handover Workflow & Zero Standing Privileges**
 - [x] **Phase 12: BPMS Process Closure & Lifecycle Deactivation Workflow**
 - [x] **Phase 13: Platform Hardening, Offboarding Safeguards, Operational Dashboard & E2E Validation**
+- [ ] **Phase 14: Final Frontend Secondary Pages Implementation**
+
 
 ---
 
@@ -176,3 +178,17 @@ This roadmap governs the phased engineering delivery of the **Detector Enterpris
   - Build role-scoped Operational Dashboard with real-time KPI metrics (Active Processes, Pending Reviews, Handover Queue, Recent Audits).
   - Verify complete platform workflow end-to-end (Import → Process Registry → Change Request → Approval → Handover → Deactivation).
   - Conduct air-gap security audit, verify zero console errors, zero lint warnings, and finalize production deployment documentation.
+
+---
+
+### Phase 14: Final Frontend Secondary Pages Implementation
+- **Status:** `PENDING` (`[ ]`)
+- **Objectives:**
+  - Build the remaining standalone secondary pages to achieve 100% compliance with Stitch design templates.
+  - **Review Queue Page (`/reviews`):** Manage pending change requests and handovers for module admins.
+  - **PM Handovers Table (`/handovers`):** Dedicated view for PM handovers.
+  - **Excel Import & Staging Pipeline (`/import`):** Drag-and-drop UI and preview pipeline for the Staged Excel feature.
+  - **Master Data Management (`/master-data`):** Interfaces for Verticals, SBUs, Clients, Locations.
+  - **Global Audit Ledger (`/audit`):** Interface for immutable audit log feed.
+  - **Notification Drawer Panel:** AppShell panel to view notifications.
+
