@@ -10,6 +10,7 @@ import { ReviewQueue } from './pages/reviews/ReviewQueue.jsx';
 import { PMHandovers } from './pages/handovers/PMHandovers.jsx';
 import { ExcelImport } from './pages/import/ExcelImport.jsx';
 import { MasterData } from './pages/master-data/MasterData.jsx';
+import { AuditLedger } from './pages/audit/AuditLedger.jsx';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -55,6 +56,7 @@ export default function App() {
           <Route path="handovers" element={<PMHandovers />} />
           <Route path="import" element={<ExcelImport />} />
           <Route path="master-data" element={<MasterData />} />
+          <Route path="audit" element={<AuditLedger />} />
           {/* Future routes will be added here */}
         </Route>
       </Routes>

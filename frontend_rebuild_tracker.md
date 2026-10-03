@@ -137,10 +137,10 @@ This document tracks the phased execution of the capability-driven frontend rebu
   - **Stitch Dependencies:** `e81e9599cc53412fb22bd8f65d251c69`.
   - **Status:** Complete.
 
-- [ ] **Step 9.5: Global Audit Ledger (`/audit`)**
+- [x] **Step 9.5: Global Audit Ledger (`/audit`)**
   - **Objective:** Build the global immutable audit ledger table.
   - **Stitch Dependencies:** `0762160fcc464cbc91a15c5366c9dc15`, `2d4d65a3390949c2b9279b51f1aa0347`.
-  - **Status:** Pending.
+  - **Status:** Complete.
 
 - [ ] **Step 9.6: Notification Drawer Panel**
   - **Objective:** Build the Notification Drawer accessible from the AppShell header.

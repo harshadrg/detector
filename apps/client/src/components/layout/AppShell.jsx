@@ -1,9 +1,10 @@
-import { NavLink, Outlet } from 'react-router';
-import { ShieldCheck, LayoutDashboard, GitFork, Users, LogOut, ClipboardCheck, ArrowRightLeft, UploadCloud, Database } from 'lucide-react';
+import { NavLink, Outlet, useLocation } from 'react-router';
+import { ShieldCheck, LayoutDashboard, GitFork, Users, LogOut, ClipboardCheck, ArrowRightLeft, UploadCloud, Database, History } from 'lucide-react';
 import { useAuth } from '../../context/useAuth.js';
 
 export function AppShell() {
   const { user, logout, activeContextRole } = useAuth();
+  const location = useLocation();
 
   return (
     <div className="bg-surface-container-low text-on-surface font-sans antialiased min-h-screen flex">
@@ -114,6 +115,19 @@ export function AppShell() {
             >
               <UploadCloud className="w-4 h-4 shrink-0" />
               <span className="text-xs font-semibold">Excel Import</span>
+            </NavLink>
+            <NavLink 
+              to="/audit" 
+              className={({ isActive }) => 
+                `flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors ${
+                  isActive 
+                    ? 'bg-secondary-container text-on-secondary-container font-semibold' 
+                    : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
+                }`
+              }
+            >
+              <History className={`w-4 h-4 shrink-0 ${location.pathname === '/audit' ? 'text-primary' : ''}`} />
+              <span className="text-xs font-semibold">Audit Ledger</span>
             </NavLink>
           </nav>
         </div>
