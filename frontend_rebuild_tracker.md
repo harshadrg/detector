@@ -127,10 +127,10 @@ This document tracks the phased execution of the capability-driven frontend rebu
   - **Stitch Dependencies:** `39d7987a30004f1cab1b7c775f38f938`, `27e6fdaa8d3b41e989cc249c5ede9fe0`.
   - **Status:** Complete.
 
-- [ ] **Step 9.3: Excel Import & Staging Pipeline (`/import`)**
+- [x] **Step 9.3: Excel Import & Staging Pipeline (`/import`)**
   - **Objective:** Build the Excel Import drag-and-drop UI and Staging Pipeline preview.
   - **Stitch Dependencies:** `550af8089f914b8aa4ceda36e3daf90a`, `6afaf1e994cb4995a2327a0fe69598cf`.
-  - **Status:** Pending.
+  - **Status:** Complete.
 
 - [ ] **Step 9.4: Master Data Management (`/master-data`)**
   - **Objective:** Build the Master Data configuration interfaces (Verticals, SBUs, Clients, Locations).

@@ -8,6 +8,7 @@ import { ProcessDetail } from './pages/registry/ProcessDetail.jsx';
 import { OperationalOverview } from './pages/overview/OperationalOverview.jsx';
 import { ReviewQueue } from './pages/reviews/ReviewQueue.jsx';
 import { PMHandovers } from './pages/handovers/PMHandovers.jsx';
+import { ExcelImport } from './pages/import/ExcelImport.jsx';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -51,6 +52,7 @@ export default function App() {
           <Route path="processes/:id" element={<ProcessDetail />} />
           <Route path="reviews" element={<ReviewQueue />} />
           <Route path="handovers" element={<PMHandovers />} />
+          <Route path="import" element={<ExcelImport />} />
           {/* Future routes will be added here */}
         </Route>
       </Routes>
