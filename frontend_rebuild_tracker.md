@@ -132,10 +132,10 @@ This document tracks the phased execution of the capability-driven frontend rebu
   - **Stitch Dependencies:** `550af8089f914b8aa4ceda36e3daf90a`, `6afaf1e994cb4995a2327a0fe69598cf`.
   - **Status:** Complete.
 
-- [ ] **Step 9.4: Master Data Management (`/master-data`)**
+- [x] **Step 9.4: Master Data Management (`/master-data`)**
   - **Objective:** Build the Master Data configuration interfaces (Verticals, SBUs, Clients, Locations).
   - **Stitch Dependencies:** `e81e9599cc53412fb22bd8f65d251c69`.
-  - **Status:** Pending.
+  - **Status:** Complete.
 
 - [ ] **Step 9.5: Global Audit Ledger (`/audit`)**
   - **Objective:** Build the global immutable audit ledger table.

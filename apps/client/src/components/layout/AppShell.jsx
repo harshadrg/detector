@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router';
-import { ShieldCheck, LayoutDashboard, GitFork, Users, LogOut, ClipboardCheck, ArrowRightLeft, UploadCloud } from 'lucide-react';
+import { ShieldCheck, LayoutDashboard, GitFork, Users, LogOut, ClipboardCheck, ArrowRightLeft, UploadCloud, Database } from 'lucide-react';
 import { useAuth } from '../../context/useAuth.js';
 
 export function AppShell() {
@@ -61,6 +61,19 @@ export function AppShell() {
             >
               <Users className="w-4 h-4 shrink-0" />
               <span className="text-xs font-semibold">Employee Directory</span>
+            </NavLink>
+            <NavLink 
+              to="/master-data" 
+              className={({ isActive }) => 
+                `flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors ${
+                  isActive 
+                    ? 'bg-primary-container/30 text-primary font-semibold border border-primary/20' 
+                    : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50'
+                }`
+              }
+            >
+              <Database className="w-4 h-4 shrink-0" />
+              <span className="text-xs font-semibold">Master Data</span>
             </NavLink>
             <NavLink 
               to="/reviews" 
