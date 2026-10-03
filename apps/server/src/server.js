@@ -73,8 +73,12 @@ app.use((err, _req, res, _next) => {
   });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
 });
+
+// Configure timeouts to prevent 502 Bad Gateway race conditions with reverse proxies
+server.keepAliveTimeout = 65000;
+server.headersTimeout = 66000;
 
 export default app;
