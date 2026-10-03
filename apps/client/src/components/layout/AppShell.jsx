@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router';
+import { ShieldCheck, LayoutDashboard, GitFork, Users, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/useAuth.js';
 
 export function AppShell() {
@@ -11,8 +12,8 @@ export function AppShell() {
         <div className="flex flex-col flex-1 overflow-y-auto">
           {/* Brand & Header */}
           <div className="h-16 flex items-center gap-2.5 px-5 border-b border-outline-variant/30">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-on-primary shadow-sm">
-              <span className="material-symbols-outlined text-lg">security</span>
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-on-primary shadow-xs">
+              <ShieldCheck className="w-5 h-5" />
             </div>
             <div className="flex flex-col">
               <span className="font-bold text-on-surface tracking-wider text-sm leading-tight">DETECTOR</span>
@@ -32,8 +33,8 @@ export function AppShell() {
                 }`
               }
             >
-              <span className="material-symbols-outlined text-xl">dashboard</span>
-              <span className="text-sm">Operational Overview</span>
+              <LayoutDashboard className="w-4 h-4 shrink-0" />
+              <span className="text-xs font-semibold">Operational Overview</span>
             </NavLink>
             <NavLink 
               to="/registry" 
@@ -45,8 +46,8 @@ export function AppShell() {
                 }`
               }
             >
-              <span className="material-symbols-outlined text-xl">account_tree</span>
-              <span className="text-sm">Process Registry</span>
+              <GitFork className="w-4 h-4 shrink-0" />
+              <span className="text-xs font-semibold">Process Registry</span>
             </NavLink>
             <NavLink 
               to="/directory" 
@@ -58,8 +59,8 @@ export function AppShell() {
                 }`
               }
             >
-              <span className="material-symbols-outlined text-xl">badge</span>
-              <span className="text-sm">Employee Directory</span>
+              <Users className="w-4 h-4 shrink-0" />
+              <span className="text-xs font-semibold">Employee Directory</span>
             </NavLink>
           </nav>
         </div>
@@ -99,7 +100,7 @@ export function AppShell() {
           <button 
             type="button" 
             onClick={logout}
-            className="flex items-center gap-2.5 pl-1 cursor-pointer group"
+            className="flex items-center gap-2 pl-1 cursor-pointer group"
           >
             <div className="w-8 h-8 rounded-full bg-primary-container/50 border border-primary/20 text-on-primary-container font-semibold text-xs flex items-center justify-center uppercase">
               {(user?.ecode || user?.employeeCode || 'U').substring(0, 2)}
@@ -108,6 +109,7 @@ export function AppShell() {
               <span className="text-xs font-semibold text-on-surface group-hover:text-primary transition-colors">
                 Logout
               </span>
+              <LogOut className="w-3.5 h-3.5 text-on-surface-variant group-hover:text-primary transition-colors" />
             </div>
           </button>
         </div>

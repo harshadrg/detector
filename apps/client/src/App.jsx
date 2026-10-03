@@ -4,6 +4,7 @@ import { AppShell } from './components/layout/AppShell.jsx';
 import { SignIn } from './pages/auth/SignIn.jsx';
 import { EmployeeDirectory } from './pages/directory/EmployeeDirectory.jsx';
 import { ProcessRegistry } from './pages/registry/ProcessRegistry.jsx';
+import { ProcessDetail } from './pages/registry/ProcessDetail.jsx';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -47,7 +48,9 @@ export default function App() {
           <Route path="directory" element={<EmployeeDirectory />} />
           <Route path="employees" element={<Navigate to="/directory" replace />} />
           <Route path="registry" element={<ProcessRegistry />} />
+          <Route path="registry/:id" element={<ProcessDetail />} />
           <Route path="processes" element={<Navigate to="/registry" replace />} />
+          <Route path="processes/:id" element={<ProcessDetail />} />
           {/* Future routes will be added here */}
         </Route>
       </Routes>

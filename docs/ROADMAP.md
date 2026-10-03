@@ -17,11 +17,11 @@ This roadmap governs the phased engineering delivery of the **Detector Enterpris
 - [x] **Phase 1: Database Foundation & Core Schemas (T-SQL Scripts, Constraints & Triggers)**
 - [x] **Phase 2: Core Platform Identity, Authentication & Session Security**
 - [x] **Phase 3: Core Authorization Engine (RBAC + ABAC Middleware & Capability Resolver)**
-- [ ] **Phase 4: Core Employee Directory & Role Governance**
-- [ ] **Phase 5: Core Immutable Audit Ledger (`Audit_Events`) & Notifications Engine**
-- [ ] **Phase 6: BPMS Master Data Management (Verticals, SBUs, Clients & Locations)**
-- [ ] **Phase 7: BPMS Staged Excel Migration & Ingestion Pipeline**
-- [ ] **Phase 8: BPMS Process Registry & Server-Side AG Grid Engine**
+- [x] **Phase 4: Core Employee Directory & Role Governance**
+- [x] **Phase 5: Core Immutable Audit Ledger (`Audit_Events`) & Notifications Engine**
+- [x] **Phase 6: BPMS Master Data Management (Verticals, SBUs, Clients & Locations)**
+- [x] **Phase 7: BPMS Staged Excel Migration & Ingestion Pipeline**
+- [x] **Phase 8: BPMS Process Registry & Server-Side AG Grid Engine**
 - [x] **Phase 9: BPMS Process Detail & Unified Process Management View**
 - [x] **Phase 10: BPMS Change Request Engine & Side-by-Side Review Workflow**
 - [x] **Phase 11: BPMS Scenario-Driven PM Handover Workflow & Zero Standing Privileges**
