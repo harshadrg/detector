@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router';
-import { ShieldCheck, LayoutDashboard, GitFork, Users, LogOut, ClipboardCheck } from 'lucide-react';
+import { ShieldCheck, LayoutDashboard, GitFork, Users, LogOut, ClipboardCheck, ArrowRightLeft } from 'lucide-react';
 import { useAuth } from '../../context/useAuth.js';
 
 export function AppShell() {
@@ -75,6 +75,19 @@ export function AppShell() {
               <ClipboardCheck className="w-4 h-4 shrink-0" />
               <span className="text-xs font-semibold flex-1">Review Queue</span>
               <span className="bg-primary text-on-primary text-[10px] font-bold px-2 py-0.5 rounded-full">3</span>
+            </NavLink>
+            <NavLink 
+              to="/handovers" 
+              className={({ isActive }) => 
+                `flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors ${
+                  isActive 
+                    ? 'bg-primary-container/30 text-primary font-semibold border border-primary/20' 
+                    : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50'
+                }`
+              }
+            >
+              <ArrowRightLeft className="w-4 h-4 shrink-0" />
+              <span className="text-xs font-semibold">PM Handovers</span>
             </NavLink>
           </nav>
         </div>

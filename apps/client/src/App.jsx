@@ -7,6 +7,7 @@ import { ProcessRegistry } from './pages/registry/ProcessRegistry.jsx';
 import { ProcessDetail } from './pages/registry/ProcessDetail.jsx';
 import { OperationalOverview } from './pages/overview/OperationalOverview.jsx';
 import { ReviewQueue } from './pages/reviews/ReviewQueue.jsx';
+import { PMHandovers } from './pages/handovers/PMHandovers.jsx';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -49,6 +50,7 @@ export default function App() {
           <Route path="processes" element={<Navigate to="/registry" replace />} />
           <Route path="processes/:id" element={<ProcessDetail />} />
           <Route path="reviews" element={<ReviewQueue />} />
+          <Route path="handovers" element={<PMHandovers />} />
           {/* Future routes will be added here */}
         </Route>
       </Routes>
