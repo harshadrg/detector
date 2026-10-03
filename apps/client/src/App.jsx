@@ -6,6 +6,7 @@ import { EmployeeDirectory } from './pages/directory/EmployeeDirectory.jsx';
 import { ProcessRegistry } from './pages/registry/ProcessRegistry.jsx';
 import { ProcessDetail } from './pages/registry/ProcessDetail.jsx';
 import { OperationalOverview } from './pages/overview/OperationalOverview.jsx';
+import { ReviewQueue } from './pages/reviews/ReviewQueue.jsx';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -47,6 +48,7 @@ export default function App() {
           <Route path="registry/:id" element={<ProcessDetail />} />
           <Route path="processes" element={<Navigate to="/registry" replace />} />
           <Route path="processes/:id" element={<ProcessDetail />} />
+          <Route path="reviews" element={<ReviewQueue />} />
           {/* Future routes will be added here */}
         </Route>
       </Routes>

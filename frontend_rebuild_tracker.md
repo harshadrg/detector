@@ -117,10 +117,10 @@ This document tracks the phased execution of the capability-driven frontend rebu
   - **Status:** Complete.
 
 ### Layer 9: Standalone Secondary Pages
-- [ ] **Step 9.1: Review Queue Page (`/reviews`)**
+- [x] **Step 9.1: Review Queue Page (`/reviews`)**
   - **Objective:** Build the Review Queue page displaying pending change requests and handovers for module admins.
   - **Stitch Dependencies:** `0c5915bd70e14a5b9320d28b0266c4fa`, `a033976e97514c88b442d07d056019d9`.
-  - **Status:** Pending.
+  - **Status:** Complete.
 
 - [ ] **Step 9.2: PM Handovers Table (`/handovers`)**
   - **Objective:** Build the dedicated PM Handovers management page.
