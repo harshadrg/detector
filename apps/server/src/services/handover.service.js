@@ -118,8 +118,8 @@ export class HandoverService {
             SET is_current = 0,
                 effective_to = @effective_to
             WHERE registry_id = @registry_id 
-              AND ecode = @from_pm_ecode 
-              AND role_type = 'PROJECT_MANAGER'
+              AND employee_ecode = @from_pm_ecode 
+              AND role_type = 'PM'
               AND is_current = 1
           `);
         }
@@ -129,13 +129,14 @@ export class HandoverService {
         openReq.input('registry_id', sql.Int, registry_id);
         openReq.input('to_pm_ecode', sql.VarChar(20), to_pm_ecode);
         openReq.input('effective_from', sql.Date, new Date());
+        openReq.input('assigned_by', sql.VarChar(20), user.ecode);
         
         await openReq.query(`
           INSERT INTO dbo.Process_Ownership (
-            registry_id, role_type, ecode, effective_from, is_current
+            registry_id, role_type, employee_ecode, effective_from, is_current, assigned_by, source_type
           )
           VALUES (
-            @registry_id, 'PROJECT_MANAGER', @to_pm_ecode, @effective_from, 1
+            @registry_id, 'PM', @to_pm_ecode, @effective_from, 1, @assigned_by, 'HANDOVER'
           )
         `);
 
@@ -156,8 +157,8 @@ export class HandoverService {
           const countRes = await countReq.query(`
             SELECT COUNT(*) AS active_count
             FROM dbo.Process_Ownership
-            WHERE ecode = @from_pm_ecode
-              AND role_type = 'PROJECT_MANAGER'
+            WHERE employee_ecode = @from_pm_ecode
+              AND role_type = 'PM'
               AND is_current = 1
           `);
           
@@ -170,7 +171,7 @@ export class HandoverService {
               DELETE erm
               FROM dbo.Employee_Role_Mapping erm
               JOIN dbo.Roles r ON r.role_id = erm.role_id
-              WHERE erm.ecode = @ecode AND r.role_code = 'PROJECT_MANAGER'
+              WHERE erm.ecode = @ecode AND r.role_code = 'PM'
             `);
 
             await auditService.logEvent({
@@ -180,9 +181,9 @@ export class HandoverService {
               action: 'REVOKE_ROLE_AUTO',
               performed_by: 'SYSTEM', // It's an automated revocation based on action by `user.ecode`
               acting_context: actingContext,
-              previous_data: { role_code: 'PROJECT_MANAGER' },
+              previous_data: { role_code: 'PM' },
               updated_data: null,
-              remarks: `Zero Standing Privileges: Automatically revoked PROJECT_MANAGER role from ${from_pm_ecode} due to 0 active ownerships.`,
+              remarks: `Zero Standing Privileges: Automatically revoked PM role from ${from_pm_ecode} due to 0 active ownerships.`,
             }, transaction);
           }
         }

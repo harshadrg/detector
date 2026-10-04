@@ -54,7 +54,7 @@ class AuthorizationService {
 
     const hierarchyRoles = ['OPS_QUALITY_HEAD', 'CBO', 'SBU_HEAD', 'ACCOUNT_HEAD'];
     const hasHierarchyRole = roleCodes.some((r) => hierarchyRoles.includes(r));
-    const hasPMRole = roleCodes.includes('PROJECT_MANAGER');
+    const hasPMRole = roleCodes.includes('PM');
 
     if (permissionCode === 'BPMS.PROCESS.VIEW' || permissionCode === 'BPMS.AUDIT.VIEW') {
       if (hasHierarchyRole) return 'OWN_HIERARCHY';

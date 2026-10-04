@@ -117,7 +117,7 @@ DECLARE @opsHeadRoleId INT = (SELECT role_id FROM dbo.Roles WHERE role_code = 'O
 DECLARE @cboRoleId INT = (SELECT role_id FROM dbo.Roles WHERE role_code = 'CBO');
 DECLARE @sbuHeadRoleId INT = (SELECT role_id FROM dbo.Roles WHERE role_code = 'SBU_HEAD');
 DECLARE @accountHeadRoleId INT = (SELECT role_id FROM dbo.Roles WHERE role_code = 'ACCOUNT_HEAD');
-DECLARE @pmRoleId INT = (SELECT role_id FROM dbo.Roles WHERE role_code = 'PROJECT_MANAGER');
+DECLARE @pmRoleId INT = (SELECT role_id FROM dbo.Roles WHERE role_code = 'PM');
 
 MERGE dbo.Employee_Role_Mapping AS target
 USING (VALUES

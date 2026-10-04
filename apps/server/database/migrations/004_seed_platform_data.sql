@@ -31,7 +31,7 @@ USING (VALUES
     ('CBO', 'Chief Business Officer', 'ORGANIZATIONAL', @bpmsModuleId, 0, 1),
     ('SBU_HEAD', 'Strategic Business Unit Head', 'ORGANIZATIONAL', @bpmsModuleId, 0, 1),
     ('ACCOUNT_HEAD', 'Account Head', 'ORGANIZATIONAL', @bpmsModuleId, 0, 1),
-    ('PROJECT_MANAGER', 'Process Project Manager', 'ORGANIZATIONAL', @bpmsModuleId, 0, 1)
+    ('PM', 'Process Project Manager', 'ORGANIZATIONAL', @bpmsModuleId, 0, 1)
 ) AS source (role_code, role_name, role_category, module_id, is_system_default, is_active)
 ON target.role_code = source.role_code
 WHEN MATCHED THEN
@@ -154,13 +154,13 @@ VALUES
 -- PROJECT_MANAGER: Own process view, change requests (draft/submit), handover requests, deactivation requests
 INSERT INTO @RolePermMap (role_code, permission_code)
 VALUES
-    ('PROJECT_MANAGER', 'CORE.NOTIFICATION.VIEW'),
-    ('PROJECT_MANAGER', 'BPMS.PROCESS.VIEW'),
-    ('PROJECT_MANAGER', 'BPMS.CHANGE_REQUEST.DRAFT'),
-    ('PROJECT_MANAGER', 'BPMS.CHANGE_REQUEST.SUBMIT'),
-    ('PROJECT_MANAGER', 'BPMS.HANDOVER.REQUEST'),
-    ('PROJECT_MANAGER', 'BPMS.PROCESS.DEACTIVATE_REQUEST'),
-    ('PROJECT_MANAGER', 'BPMS.AUDIT.VIEW');
+    ('PM', 'CORE.NOTIFICATION.VIEW'),
+    ('PM', 'BPMS.PROCESS.VIEW'),
+    ('PM', 'BPMS.CHANGE_REQUEST.DRAFT'),
+    ('PM', 'BPMS.CHANGE_REQUEST.SUBMIT'),
+    ('PM', 'BPMS.HANDOVER.REQUEST'),
+    ('PM', 'BPMS.PROCESS.DEACTIVATE_REQUEST'),
+    ('PM', 'BPMS.AUDIT.VIEW');
 
 -- Merge into Role_Permissions
 MERGE dbo.Role_Permissions AS target

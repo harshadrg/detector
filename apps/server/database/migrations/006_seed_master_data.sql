@@ -39,7 +39,7 @@ VALUES
     ('CBO', 'BPMS.MASTER.VIEW'),
     ('SBU_HEAD', 'BPMS.MASTER.VIEW'),
     ('ACCOUNT_HEAD', 'BPMS.MASTER.VIEW'),
-    ('PROJECT_MANAGER', 'BPMS.MASTER.VIEW');
+    ('PM', 'BPMS.MASTER.VIEW');
 
 MERGE dbo.Role_Permissions AS target
 USING (

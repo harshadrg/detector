@@ -563,7 +563,7 @@ USING (VALUES
     ('CBO', 'Chief Business Officer', 'ORGANIZATIONAL', @bpmsModuleId, 0, 1),
     ('SBU_HEAD', 'Strategic Business Unit Head', 'ORGANIZATIONAL', @bpmsModuleId, 0, 1),
     ('ACCOUNT_HEAD', 'Account Head', 'ORGANIZATIONAL', @bpmsModuleId, 0, 1),
-    ('PROJECT_MANAGER', 'Process Project Manager', 'ORGANIZATIONAL', @bpmsModuleId, 0, 1)
+    ('PM', 'Process Project Manager', 'ORGANIZATIONAL', @bpmsModuleId, 0, 1)
 ) AS source (role_code, role_name, role_category, module_id, is_system_default, is_active)
 ON target.role_code = source.role_code
 WHEN MATCHED THEN
@@ -675,13 +675,13 @@ VALUES
 
 INSERT INTO @RolePermMap (role_code, permission_code)
 VALUES
-    ('PROJECT_MANAGER', 'CORE.NOTIFICATION.VIEW'),
-    ('PROJECT_MANAGER', 'BPMS.PROCESS.VIEW'),
-    ('PROJECT_MANAGER', 'BPMS.CHANGE_REQUEST.DRAFT'),
-    ('PROJECT_MANAGER', 'BPMS.CHANGE_REQUEST.SUBMIT'),
-    ('PROJECT_MANAGER', 'BPMS.HANDOVER.REQUEST'),
-    ('PROJECT_MANAGER', 'BPMS.PROCESS.DEACTIVATE_REQUEST'),
-    ('PROJECT_MANAGER', 'BPMS.AUDIT.VIEW');
+    ('PM', 'CORE.NOTIFICATION.VIEW'),
+    ('PM', 'BPMS.PROCESS.VIEW'),
+    ('PM', 'BPMS.CHANGE_REQUEST.DRAFT'),
+    ('PM', 'BPMS.CHANGE_REQUEST.SUBMIT'),
+    ('PM', 'BPMS.HANDOVER.REQUEST'),
+    ('PM', 'BPMS.PROCESS.DEACTIVATE_REQUEST'),
+    ('PM', 'BPMS.AUDIT.VIEW');
 
 MERGE dbo.Role_Permissions AS target
 USING (
@@ -764,7 +764,7 @@ VALUES
     ('CBO', 'BPMS.MASTER.VIEW'),
     ('SBU_HEAD', 'BPMS.MASTER.VIEW'),
     ('ACCOUNT_HEAD', 'BPMS.MASTER.VIEW'),
-    ('PROJECT_MANAGER', 'BPMS.MASTER.VIEW');
+    ('PM', 'BPMS.MASTER.VIEW');
 
 MERGE dbo.Role_Permissions AS target
 USING (
@@ -968,7 +968,7 @@ DECLARE @opsHeadRoleId INT = (SELECT role_id FROM dbo.Roles WHERE role_code = 'O
 DECLARE @cboRoleId INT = (SELECT role_id FROM dbo.Roles WHERE role_code = 'CBO');
 DECLARE @sbuHeadRoleId INT = (SELECT role_id FROM dbo.Roles WHERE role_code = 'SBU_HEAD');
 DECLARE @accountHeadRoleId INT = (SELECT role_id FROM dbo.Roles WHERE role_code = 'ACCOUNT_HEAD');
-DECLARE @pmRoleId INT = (SELECT role_id FROM dbo.Roles WHERE role_code = 'PROJECT_MANAGER');
+DECLARE @pmRoleId INT = (SELECT role_id FROM dbo.Roles WHERE role_code = 'PM');
 
 MERGE dbo.Employee_Role_Mapping AS target
 USING (VALUES

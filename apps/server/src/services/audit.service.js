@@ -270,6 +270,13 @@ export class AuditService {
       },
     };
   }
+
+  /**
+   * Alias for backwards compatibility with BPMS services
+   */
+  async logEvent(params, transaction = null) {
+    return this.log(params, transaction);
+  }
 }
 
 export const auditService = new AuditService();

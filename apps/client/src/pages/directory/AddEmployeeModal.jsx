@@ -39,7 +39,7 @@ export function AddEmployeeModal({ isOpen, onClose, onCreated }) {
   const canAssignAdmin = hasPermission('CORE.ROLE.ASSIGN_ADMIN');
 
   const [availableRoles, setAvailableRoles] = useState([]);
-  const [selectedRoles, setSelectedRoles] = useState(['PROJECT_MANAGER']);
+  const [selectedRoles, setSelectedRoles] = useState(['PM']);
   const [submitError, setSubmitError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -60,7 +60,7 @@ export function AddEmployeeModal({ isOpen, onClose, onCreated }) {
 
   const handleClose = () => {
     setSubmitError(null);
-    setSelectedRoles(['PROJECT_MANAGER']);
+    setSelectedRoles(['PM']);
     reset({
       ecode: '',
       name: '',
