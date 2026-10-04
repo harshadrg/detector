@@ -364,24 +364,26 @@ export class ProcessService {
    * @returns {Promise<any>}
    */
   async createProcess(user, data, actingContext = null) {
-    // Generate next process_code
-    const maxCodeResult = await query(
-      `SELECT TOP 1 process_code 
-       FROM dbo.Process_Registry 
-       WHERE process_code LIKE 'PRC-%' 
-       ORDER BY process_code DESC`
-    );
-    let currentCodeSeq = 0;
-    if (maxCodeResult.recordset?.[0]?.process_code) {
-      const parts = maxCodeResult.recordset[0].process_code.split('-');
-      currentCodeSeq = parseInt(parts[1], 10) || 0;
-    }
-    currentCodeSeq++;
-    const processCode = `PRC-${String(currentCodeSeq).padStart(4, '0')}`;
-
     let createdRegistryId;
+    let processCode;
 
     await executeTransaction(async (transaction) => {
+      // Generate next process_code inside transaction with UPDLOCK to prevent collisions
+      const maxCodeReq = new sql.Request(transaction);
+      const maxCodeResult = await maxCodeReq.query(`
+         SELECT TOP 1 process_code 
+         FROM dbo.Process_Registry WITH (UPDLOCK) 
+         WHERE process_code LIKE 'PRC-%' 
+         ORDER BY process_code DESC
+      `);
+      let currentCodeSeq = 0;
+      if (maxCodeResult.recordset?.[0]?.process_code) {
+        const parts = maxCodeResult.recordset[0].process_code.split('-');
+        currentCodeSeq = parseInt(parts[1], 10) || 0;
+      }
+      currentCodeSeq++;
+      processCode = `PRC-${String(currentCodeSeq).padStart(4, '0')}`;
+
       const insertProcReq = new sql.Request(transaction);
       insertProcReq.input('process_code', sql.VarChar(30), processCode);
       insertProcReq.input('wps_code', sql.VarChar(100), data.wps_code || null);
@@ -489,3 +491,4 @@ export class ProcessService {
 }
 export const processService = new ProcessService();
 export default processService;
+

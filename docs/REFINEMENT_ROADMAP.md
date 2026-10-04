@@ -35,7 +35,7 @@ The following phases must be executed sequentially. **Do not proceed to the next
   - Add missing `assigned_by` (using acting user) and `source_type` (`'HANDOVER'`) values to the handover insert query.
 * **Verification:** Ensure process creation, change requests, and handovers do not throw runtime TypeErrors or SQL constraint exceptions.
 
-### Phase 2: Transaction & Concurrency Hardening
+### [x] Phase 2: Transaction & Concurrency Hardening
 * **Objective:** Ensure data integrity during multi-table writes and concurrent operations.
 * **Tasks:**
   - Wrap `assignRole` in `employee.controller.js` within `executeTransaction`.

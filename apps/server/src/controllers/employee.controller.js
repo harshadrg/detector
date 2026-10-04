@@ -613,41 +613,71 @@ export async function assignRole(req, res) {
       }
     }
 
-    // Execute Assignment or Revocation
-    if (action === 'ASSIGN') {
-      await query(
-        `IF NOT EXISTS (
-           SELECT 1 FROM dbo.Employee_Role_Mapping 
+    // Execute Assignment or Revocation within a transaction
+    await executeTransaction(async (transaction) => {
+      if (action === 'ASSIGN') {
+        const assignReq = new sql.Request(transaction);
+        assignReq.input('ecode', sql.VarChar(20), ecode);
+        assignReq.input('roleId', sql.Int, role.role_id);
+        assignReq.input('assignedBy', sql.VarChar(20), req.user.ecode);
+        
+        await assignReq.query(`
+           IF NOT EXISTS (
+             SELECT 1 FROM dbo.Employee_Role_Mapping 
+             WHERE ecode = @ecode AND role_id = @roleId
+           )
+           BEGIN
+             INSERT INTO dbo.Employee_Role_Mapping (ecode, role_id, assigned_by)
+             VALUES (@ecode, @roleId, @assignedBy)
+           END
+        `);
+      } else {
+        const revokeReq = new sql.Request(transaction);
+        revokeReq.input('ecode', sql.VarChar(20), ecode);
+        revokeReq.input('roleId', sql.Int, role.role_id);
+        
+        await revokeReq.query(`
+           DELETE FROM dbo.Employee_Role_Mapping 
            WHERE ecode = @ecode AND role_id = @roleId
-         )
-         BEGIN
-           INSERT INTO dbo.Employee_Role_Mapping (ecode, role_id, assigned_by)
-           VALUES (@ecode, @roleId, @assignedBy)
-         END`,
-        {
-          ecode: { type: sql.VarChar(20), value: ecode },
-          roleId: { type: sql.Int, value: role.role_id },
-          assignedBy: { type: sql.VarChar(20), value: req.user.ecode },
-        }
-      );
-    } else {
-      await query(
-        `DELETE FROM dbo.Employee_Role_Mapping 
-         WHERE ecode = @ecode AND role_id = @roleId`,
-        {
-          ecode: { type: sql.VarChar(20), value: ecode },
-          roleId: { type: sql.Int, value: role.role_id },
-        }
-      );
-    }
+        `);
+      }
 
-    // Invalidate target employee's session so permissions refresh immediately
-    await query(
-      `UPDATE dbo.Employee_Identities 
-       SET token_version = token_version + 1 
-       WHERE ecode = @ecode`,
-      { ecode: { type: sql.VarChar(20), value: ecode } }
-    );
+      // Invalidate target employee's session so permissions refresh immediately
+      const tokenReq = new sql.Request(transaction);
+      tokenReq.input('ecode', sql.VarChar(20), ecode);
+      await tokenReq.query(`
+         UPDATE dbo.Employee_Identities 
+         SET token_version = token_version + 1 
+         WHERE ecode = @ecode
+      `);
+
+      // Emit Audit Event & Dispatch Role Notification
+      await auditService.logEvent({
+        module_code: 'CORE',
+        entity_type: 'EMPLOYEE_ROLE',
+        entity_id: ecode,
+        action: action === 'ASSIGN' ? 'ASSIGN_ROLE' : 'REVOKE_ROLE',
+        performed_by: req.user.ecode,
+        acting_context: req.actingContext || null,
+        previous_data: null,
+        updated_data: { ecode, role_code, action },
+        remarks: `${action === 'ASSIGN' ? 'Assigned' : 'Revoked'} role ${role_code} ${
+          action === 'ASSIGN' ? 'to' : 'from'
+        } ${ecode}.`,
+      }, transaction);
+
+      await notificationService.dispatch({
+        recipient_ecode: ecode,
+        sender_ecode: req.user.ecode,
+        notification_type: 'STATUS_CHANGE',
+        entity_type: 'ROLE',
+        entity_id: role_code,
+        message: `Role ${role_code} was ${
+          action === 'ASSIGN' ? 'assigned to' : 'revoked from'
+        } your account by administrator ${req.user.ecode}.`,
+        action_url: null,
+      }, transaction);
+    });
 
     // Fetch updated roles list
     const updatedRolesResult = await query(
@@ -657,33 +687,6 @@ export async function assignRole(req, res) {
        WHERE erm.ecode = @ecode AND r.is_active = 1`,
       { ecode: { type: sql.VarChar(20), value: ecode } }
     );
-
-    // Emit Audit Event & Dispatch Role Notification
-    await auditService.log({
-      module_code: 'CORE',
-      entity_type: 'EMPLOYEE_ROLE',
-      entity_id: ecode,
-      action: action === 'ASSIGN' ? 'ASSIGN_ROLE' : 'REVOKE_ROLE',
-      performed_by: req.user.ecode,
-      acting_context: req.actingContext || null,
-      previous_data: null,
-      updated_data: { ecode, role_code, action },
-      remarks: `${action === 'ASSIGN' ? 'Assigned' : 'Revoked'} role ${role_code} ${
-        action === 'ASSIGN' ? 'to' : 'from'
-      } ${ecode}.`,
-    });
-
-    await notificationService.dispatch({
-      recipient_ecode: ecode,
-      sender_ecode: req.user.ecode,
-      notification_type: 'STATUS_CHANGE',
-      entity_type: 'ROLE',
-      entity_id: role_code,
-      message: `Role ${role_code} was ${
-        action === 'ASSIGN' ? 'assigned to' : 'revoked from'
-      } your account by administrator ${req.user.ecode}.`,
-      action_url: null,
-    });
 
     return res.status(200).json({
       success: true,

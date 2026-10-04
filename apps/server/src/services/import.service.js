@@ -170,21 +170,22 @@ export class ImportService {
       employeeMap.set(e.ecode.toUpperCase(), e.ecode);
     }
 
+    return await executeTransaction(async (transaction) => {
     // 3. Create Import Batch Record in Database
-    const batchInsertResult = await query(
-      `INSERT INTO dbo.Import_Batches (
+    const batchInsertReq = new sql.Request(transaction);
+    batchInsertReq.input('file_name', sql.NVarChar(255), fileName);
+    batchInsertReq.input('uploaded_by', sql.VarChar(20), uploadedBy);
+    batchInsertReq.input('total_rows', sql.Int, dataRows.length);
+
+    const batchInsertResult = await batchInsertReq.query(`
+      INSERT INTO dbo.Import_Batches (
         file_name, uploaded_by, status, total_rows, valid_rows, error_rows
       )
       OUTPUT INSERTED.batch_id
       VALUES (
         @file_name, @uploaded_by, 'VALIDATING', @total_rows, 0, 0
-      )`,
-      {
-        file_name: { type: sql.NVarChar(255), value: fileName },
-        uploaded_by: { type: sql.VarChar(20), value: uploadedBy },
-        total_rows: { type: sql.Int, value: dataRows.length },
-      }
-    );
+      )
+    `);
 
     const batchId = batchInsertResult.recordset[0].batch_id;
 
@@ -332,7 +333,8 @@ export class ImportService {
     for (let c = 0; c < stagingRecords.length; c += CHUNK_SIZE) {
       const chunk = stagingRecords.slice(c, c + CHUNK_SIZE);
       const valuesSql = [];
-      const params = { batchId: { type: sql.Int, value: batchId } };
+      const stagingReq = new sql.Request(transaction);
+      stagingReq.input('batchId', sql.Int, batchId);
 
       chunk.forEach((rec, idx) => {
         const rowNumParam = `row_${idx}`;
@@ -341,38 +343,37 @@ export class ImportService {
         const errParam = `err_${idx}`;
         const validParam = `valid_${idx}`;
 
-        params[rowNumParam] = { type: sql.Int, value: rec.rowNumber };
-        params[rawParam] = { type: sql.NVarChar(sql.MAX), value: rec.rawJson };
-        params[normParam] = { type: sql.NVarChar(sql.MAX), value: rec.normalizedJson };
-        params[errParam] = { type: sql.NVarChar(sql.MAX), value: rec.validationErrorsJson };
-        params[validParam] = { type: sql.Bit, value: rec.isValid };
+        stagingReq.input(rowNumParam, sql.Int, rec.rowNumber);
+        stagingReq.input(rawParam, sql.NVarChar(sql.MAX), rec.rawJson);
+        stagingReq.input(normParam, sql.NVarChar(sql.MAX), rec.normalizedJson);
+        stagingReq.input(errParam, sql.NVarChar(sql.MAX), rec.validationErrorsJson);
+        stagingReq.input(validParam, sql.Bit, rec.isValid);
 
         valuesSql.push(`(@batchId, @${rowNumParam}, @${rawParam}, @${normParam}, @${errParam}, @${validParam})`);
       });
 
-      await query(
-        `INSERT INTO dbo.Import_Staging_Rows (
+      await stagingReq.query(`
+        INSERT INTO dbo.Import_Staging_Rows (
           batch_id, row_number, raw_json, normalized_json, validation_errors_json, is_valid
-        ) VALUES ${valuesSql.join(', ')}`,
-        params
-      );
+        ) VALUES ${valuesSql.join(', ')}
+      `);
     }
 
     // 6. Update Batch Status
     const finalStatus = errorCount === 0 ? 'READY_TO_COMMIT' : 'VALIDATED_WITH_ERRORS';
-    await query(
-      `UPDATE dbo.Import_Batches
-       SET status = @status,
-           valid_rows = @valid_rows,
-           error_rows = @error_rows
-       WHERE batch_id = @batch_id`,
-      {
-        status: { type: sql.VarChar(30), value: finalStatus },
-        valid_rows: { type: sql.Int, value: validCount },
-        error_rows: { type: sql.Int, value: errorCount },
-        batch_id: { type: sql.Int, value: batchId },
-      }
-    );
+    const statusReq = new sql.Request(transaction);
+    statusReq.input('status', sql.VarChar(30), finalStatus);
+    statusReq.input('valid_rows', sql.Int, validCount);
+    statusReq.input('error_rows', sql.Int, errorCount);
+    statusReq.input('batch_id', sql.Int, batchId);
+
+    await statusReq.query(`
+      UPDATE dbo.Import_Batches
+      SET status = @status,
+          valid_rows = @valid_rows,
+          error_rows = @error_rows
+      WHERE batch_id = @batch_id
+    `);
 
     return {
       batchId,
@@ -382,6 +383,7 @@ export class ImportService {
       errorRows: errorCount,
       status: finalStatus,
     };
+  });
   }
 
   /**
@@ -557,23 +559,23 @@ export class ImportService {
       throw new Error('No valid staged rows found in this batch.');
     }
 
-    // Query highest current process_code suffix to assign sequential canonical codes
-    const maxCodeResult = await query(
-      `SELECT TOP 1 process_code 
-       FROM dbo.Process_Registry 
-       WHERE process_code LIKE 'PRC-%' 
-       ORDER BY process_code DESC`
-    );
-    let currentCodeSeq = 0;
-    if (maxCodeResult.recordset?.[0]?.process_code) {
-      const parts = maxCodeResult.recordset[0].process_code.split('-');
-      currentCodeSeq = parseInt(parts[1], 10) || 0;
-    }
-
     // Execute atomic transactional commit
     const committedProcessCodes = [];
 
     await executeTransaction(async (transaction) => {
+      // Query highest current process_code suffix to assign sequential canonical codes inside transaction to avoid collisions
+      const maxCodeReq = new sql.Request(transaction);
+      const maxCodeResult = await maxCodeReq.query(`
+        SELECT TOP 1 process_code 
+        FROM dbo.Process_Registry WITH (UPDLOCK) 
+        WHERE process_code LIKE 'PRC-%' 
+        ORDER BY process_code DESC
+      `);
+      let currentCodeSeq = 0;
+      if (maxCodeResult.recordset?.[0]?.process_code) {
+        const parts = maxCodeResult.recordset[0].process_code.split('-');
+        currentCodeSeq = parseInt(parts[1], 10) || 0;
+      }
       for (const item of validRows) {
         const norm = JSON.parse(item.normalized_json);
 
@@ -684,3 +686,5 @@ export class ImportService {
 
 export const importService = new ImportService();
 export default importService;
+
+
