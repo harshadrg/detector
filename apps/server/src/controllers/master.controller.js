@@ -99,11 +99,12 @@ export async function createVertical(req, res) {
       error: null,
     });
   } catch (err) {
-    return res.status(400).json({
+    const isConflict = err.message && err.message.includes('already exists');
+    return res.status(isConflict ? 409 : 500).json({
       success: false,
       data: null,
       error: {
-        code: 'CREATE_VERTICAL_FAILED',
+        code: isConflict ? 'CONFLICT' : 'CREATE_VERTICAL_FAILED',
         message: err.message || 'Failed to create vertical.',
         details: [],
       },
@@ -161,11 +162,12 @@ export async function updateVertical(req, res) {
       error: null,
     });
   } catch (err) {
-    return res.status(500).json({
+    const isConflict = err.message && err.message.includes('already exists');
+    return res.status(isConflict ? 409 : 500).json({
       success: false,
       data: null,
       error: {
-        code: 'UPDATE_VERTICAL_FAILED',
+        code: isConflict ? 'CONFLICT' : 'UPDATE_VERTICAL_FAILED',
         message: err.message || 'Failed to update vertical.',
         details: [],
       },
@@ -238,11 +240,12 @@ export async function createSBU(req, res) {
       error: null,
     });
   } catch (err) {
-    return res.status(400).json({
+    const isConflict = err.message && err.message.includes('already exists');
+    return res.status(isConflict ? 409 : 500).json({
       success: false,
       data: null,
       error: {
-        code: 'CREATE_SBU_FAILED',
+        code: isConflict ? 'CONFLICT' : 'CREATE_SBU_FAILED',
         message: err.message || 'Failed to create SBU.',
         details: [],
       },
@@ -300,11 +303,12 @@ export async function updateSBU(req, res) {
       error: null,
     });
   } catch (err) {
-    return res.status(500).json({
+    const isConflict = err.message && err.message.includes('already exists');
+    return res.status(isConflict ? 409 : 500).json({
       success: false,
       data: null,
       error: {
-        code: 'UPDATE_SBU_FAILED',
+        code: isConflict ? 'CONFLICT' : 'UPDATE_SBU_FAILED',
         message: err.message || 'Failed to update SBU.',
         details: [],
       },
@@ -377,11 +381,12 @@ export async function createClient(req, res) {
       error: null,
     });
   } catch (err) {
-    return res.status(400).json({
+    const isConflict = err.message && err.message.includes('already exists');
+    return res.status(isConflict ? 409 : 500).json({
       success: false,
       data: null,
       error: {
-        code: 'CREATE_CLIENT_FAILED',
+        code: isConflict ? 'CONFLICT' : 'CREATE_CLIENT_FAILED',
         message: err.message || 'Failed to create client.',
         details: [],
       },
@@ -439,11 +444,12 @@ export async function updateClient(req, res) {
       error: null,
     });
   } catch (err) {
-    return res.status(500).json({
+    const isConflict = err.message && err.message.includes('already exists');
+    return res.status(isConflict ? 409 : 500).json({
       success: false,
       data: null,
       error: {
-        code: 'UPDATE_CLIENT_FAILED',
+        code: isConflict ? 'CONFLICT' : 'UPDATE_CLIENT_FAILED',
         message: err.message || 'Failed to update client.',
         details: [],
       },
@@ -516,11 +522,12 @@ export async function createLocation(req, res) {
       error: null,
     });
   } catch (err) {
-    return res.status(400).json({
+    const isConflict = err.message && err.message.includes('already exists');
+    return res.status(isConflict ? 409 : 500).json({
       success: false,
       data: null,
       error: {
-        code: 'CREATE_LOCATION_FAILED',
+        code: isConflict ? 'CONFLICT' : 'CREATE_LOCATION_FAILED',
         message: err.message || 'Failed to create location.',
         details: [],
       },
@@ -578,11 +585,12 @@ export async function updateLocation(req, res) {
       error: null,
     });
   } catch (err) {
-    return res.status(500).json({
+    const isConflict = err.message && err.message.includes('already exists');
+    return res.status(isConflict ? 409 : 500).json({
       success: false,
       data: null,
       error: {
-        code: 'UPDATE_LOCATION_FAILED',
+        code: isConflict ? 'CONFLICT' : 'UPDATE_LOCATION_FAILED',
         message: err.message || 'Failed to update location.',
         details: [],
       },

@@ -50,7 +50,7 @@ The following phases must be executed sequentially. **Do not proceed to the next
   - Apply validation layers to the corresponding BPMS controllers.
 * **Verification:** Endpoints return HTTP `400 VALIDATION_ERROR` for malformed requests.
 
-### Phase 4: Error Handling & Security Optimization
+### [x] Phase 4: Error Handling & Security Optimization
 * **Objective:** Secure endpoints and return semantic HTTP status codes.
 * **Tasks:**
   - Fix `catch` blocks in `master.controller.js` to return HTTP `409` (Conflict) for duplicates and `500` for other DB errors.
