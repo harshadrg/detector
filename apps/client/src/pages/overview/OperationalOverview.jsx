@@ -24,24 +24,26 @@ import {
 } from '../../lib/api.js';
 import { Button } from '../../components/ui/Button.jsx';
 import { Badge } from '../../components/ui/Badge.jsx';
-import { useCapabilities } from '../../hooks/useCapabilities.js';
+import { useAuth } from '../../context/useAuth.js';
 
 export function OperationalOverview() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const { hasCapability } = useCapabilities();
+  const { hasPermission, hasAnyPermission } = useAuth();
 
   // 1. Fetch Process summary
   const { data: processData, isLoading: isProcessLoading } = useQuery({
     queryKey: ['overview-processes'],
     queryFn: () => processApi.list({ page: 1, pageSize: 5 }),
+    enabled: hasPermission('BPMS.PROCESS.VIEW'),
   });
 
   // 2. Fetch Active Process count
   const { data: activeProcessData } = useQuery({
     queryKey: ['overview-active-processes'],
     queryFn: () => processApi.list({ page: 1, pageSize: 1, status: 'ACTIVE' }),
+    enabled: hasPermission('BPMS.PROCESS.VIEW'),
   });
 
   // 3. Fetch Pending Change Requests
@@ -51,9 +53,10 @@ export function OperationalOverview() {
       try {
         return await changeRequestApi.listPendingReviews();
       } catch {
-        return { pending_reviews: [] };
+        return { reviews: [] };
       }
     },
+    enabled: hasPermission('BPMS.CHANGE_REQUEST.APPROVE'),
   });
 
   // 4. Fetch Pending Handovers
@@ -63,21 +66,24 @@ export function OperationalOverview() {
       try {
         return await handoverApi.listPendingHandovers();
       } catch {
-        return { pending_handovers: [] };
+        return { handovers: [] };
       }
     },
+    enabled: hasPermission('BPMS.HANDOVER.APPROVE'),
   });
 
   // 5. Fetch Active Employees count
   const { data: employeeData } = useQuery({
     queryKey: ['overview-employees'],
     queryFn: () => employeeApi.list({ page: 1, pageSize: 1, status: 'ACTIVE' }),
+    enabled: hasPermission('CORE.USER.VIEW'),
   });
 
   // 6. Fetch Recent Audit Events
   const { data: auditData, isLoading: isAuditLoading } = useQuery({
     queryKey: ['overview-audit'],
     queryFn: () => auditApi.getEvents({ pageSize: 5 }),
+    enabled: hasAnyPermission(['CORE.AUDIT.VIEW_GLOBAL', 'BPMS.AUDIT.VIEW']),
   });
 
   const handleRefresh = async () => {
@@ -87,8 +93,8 @@ export function OperationalOverview() {
   };
 
   const activeProcessCount = activeProcessData?.meta?.totalCount ?? activeProcessData?.total ?? processData?.meta?.totalCount ?? processData?.processes?.length ?? 0;
-  const pendingCRList = pendingReviewsData?.pending_reviews || [];
-  const pendingHandoverList = pendingHandoversData?.pending_handovers || [];
+  const pendingCRList = pendingReviewsData?.reviews || [];
+  const pendingHandoverList = pendingHandoversData?.handovers || [];
   const totalEmployees = employeeData?.meta?.totalCount ?? employeeData?.total ?? employeeData?.employees?.length ?? 0;
   const recentProcesses = processData?.processes || [];
   const recentEvents = auditData?.events || [];
@@ -122,7 +128,7 @@ export function OperationalOverview() {
             {isRefreshing ? 'Refreshing...' : 'Refresh'}
           </Button>
 
-          {hasCapability('BPMS.PROCESS.CREATE') && (
+          {hasPermission('BPMS.PROCESS.CREATE') && (
             <Button
               variant="primary"
               className="text-xs"

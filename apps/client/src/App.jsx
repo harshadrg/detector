@@ -12,6 +12,7 @@ import { PMHandovers } from './pages/handovers/PMHandovers.jsx';
 import { ExcelImport } from './pages/import/ExcelImport.jsx';
 import { MasterData } from './pages/master-data/MasterData.jsx';
 import { AuditLedger } from './pages/audit/AuditLedger.jsx';
+import { ErrorBoundary } from './components/ErrorBoundary.jsx';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -46,19 +47,19 @@ export default function App() {
           }
         >
           <Route index element={<Navigate to="/overview" replace />} />
-          <Route path="overview" element={<OperationalOverview />} />
-          <Route path="directory" element={<EmployeeDirectory />} />
+          <Route path="overview" element={<ErrorBoundary><OperationalOverview /></ErrorBoundary>} />
+          <Route path="directory" element={<ErrorBoundary><EmployeeDirectory /></ErrorBoundary>} />
           <Route path="employees" element={<Navigate to="/directory" replace />} />
-          <Route path="registry" element={<ProcessRegistry />} />
-          <Route path="registry/new" element={<RegisterProcess />} />
-          <Route path="registry/:id" element={<ProcessDetail />} />
+          <Route path="registry" element={<ErrorBoundary><ProcessRegistry /></ErrorBoundary>} />
+          <Route path="registry/new" element={<ErrorBoundary><RegisterProcess /></ErrorBoundary>} />
+          <Route path="registry/:id" element={<ErrorBoundary><ProcessDetail /></ErrorBoundary>} />
           <Route path="processes" element={<Navigate to="/registry" replace />} />
-          <Route path="processes/:id" element={<ProcessDetail />} />
-          <Route path="reviews" element={<ReviewQueue />} />
-          <Route path="handovers" element={<PMHandovers />} />
-          <Route path="import" element={<ExcelImport />} />
-          <Route path="master-data" element={<MasterData />} />
-          <Route path="audit" element={<AuditLedger />} />
+          <Route path="processes/:id" element={<ErrorBoundary><ProcessDetail /></ErrorBoundary>} />
+          <Route path="reviews" element={<ErrorBoundary><ReviewQueue /></ErrorBoundary>} />
+          <Route path="handovers" element={<ErrorBoundary><PMHandovers /></ErrorBoundary>} />
+          <Route path="import" element={<ErrorBoundary><ExcelImport /></ErrorBoundary>} />
+          <Route path="master-data" element={<ErrorBoundary><MasterData /></ErrorBoundary>} />
+          <Route path="audit" element={<ErrorBoundary><AuditLedger /></ErrorBoundary>} />
           {/* Future routes will be added here */}
         </Route>
       </Routes>
