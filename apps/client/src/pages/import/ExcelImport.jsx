@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { importApi } from '../../lib/api';
 import { 
   Download, 
   UploadCloud, 
@@ -7,14 +9,38 @@ import {
   ChevronRight, 
   ChevronDown, 
   AlertCircle, 
-  Check 
+  Check,
+  FileSpreadsheet,
+  XCircle,
+  Clock
 } from 'lucide-react';
 
 export function ExcelImport() {
-  const [expandedBatchId, setExpandedBatchId] = useState('B-002');
+  const [expandedBatchId, setExpandedBatchId] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const { data, isLoading, refetch, isFetching } = useQuery({
+    queryKey: ['import-batches', page, pageSize],
+    queryFn: () => importApi.listBatches({ page, pageSize }),
+    keepPreviousData: true,
+  });
+
+  const batches = data?.batches || [];
+  const meta = data?.meta || { page: 1, pageSize: 10, totalCount: 0, totalPages: 0 };
 
   const toggleBatch = (batchId) => {
     setExpandedBatchId(expandedBatchId === batchId ? null : batchId);
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'COMMITTED': return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+      case 'STAGED': return 'bg-amber-100 text-amber-800 border-amber-300';
+      case 'VALIDATION_FAILED': return 'bg-rose-100 text-rose-800 border-rose-300';
+      case 'PROCESSING': return 'bg-blue-100 text-blue-800 border-blue-300';
+      default: return 'bg-surface-container-high text-on-surface-variant border-outline-variant';
+    }
   };
 
   return (
@@ -98,7 +124,7 @@ export function ExcelImport() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center space-x-2">
             <h2 className="text-base font-bold text-on-surface" id="batches-table-heading">Import Batches</h2>
-            <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-secondary-container text-on-secondary-container">0 total</span>
+            <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-secondary-container text-on-secondary-container">{meta.totalCount} total</span>
           </div>
           <div className="flex items-center space-x-2">
             {/* Filter Bar */}
@@ -111,8 +137,12 @@ export function ExcelImport() {
                 <option>Ready to Commit</option>
               </select>
             </div>
-            <button className="p-1.5 border border-outline-variant bg-surface-container-lowest hover:bg-surface-container rounded-lg text-on-surface-variant transition-colors" title="Refresh batches">
-              <RefreshCw className="w-4 h-4" />
+            <button 
+              onClick={() => refetch()}
+              className="p-1.5 border border-outline-variant bg-surface-container-lowest hover:bg-surface-container rounded-lg text-on-surface-variant transition-colors" 
+              title="Refresh batches"
+            >
+              <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </div>
@@ -123,6 +153,7 @@ export function ExcelImport() {
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="bg-surface-container border-b border-outline-variant text-on-surface-variant font-semibold">
+                  <th className="py-2.5 px-4 w-10"></th>
                   <th className="py-2.5 px-4">Batch ID</th>
                   <th className="py-2.5 px-4">File Name</th>
                   <th className="py-2.5 px-4">Uploaded By</th>
@@ -134,23 +165,67 @@ export function ExcelImport() {
                   <th className="py-2.5 px-4 text-center">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-outline-variant/60 font-body">
-                {/* TODO: Phase 7 - Fetch import batches from the ingestion engine API */}
-                <tr>
-                  <td colSpan="9" className="py-8 text-center text-on-surface-variant text-sm">
-                    No import batches found.
-                  </td>
-                </tr>
+              <tbody className="divide-y divide-outline-variant/60 font-body text-on-surface">
+                {isLoading ? (
+                  <tr>
+                    <td colSpan="10" className="py-8 text-center text-on-surface-variant text-sm">
+                      Loading import batches...
+                    </td>
+                  </tr>
+                ) : batches.length === 0 ? (
+                  <tr>
+                    <td colSpan="10" className="py-8 text-center text-on-surface-variant text-sm">
+                      No import batches found.
+                    </td>
+                  </tr>
+                ) : (
+                  batches.map((batch) => (
+                    <tr key={batch.batch_id} className="hover:bg-surface-container/30 transition-colors">
+                      <td className="py-3 px-4 text-center">
+                        <FileSpreadsheet className="w-4 h-4 text-outline" />
+                      </td>
+                      <td className="py-3 px-4 font-mono font-bold text-primary">{batch.batch_id}</td>
+                      <td className="py-3 px-4 truncate max-w-[150px]">{batch.original_filename}</td>
+                      <td className="py-3 px-4">{batch.uploaded_by}</td>
+                      <td className="py-3 px-4">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase border ${getStatusColor(batch.status)}`}>
+                          {batch.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono">{batch.total_rows}</td>
+                      <td className="py-3 px-4 text-right font-mono text-emerald-600">{batch.valid_rows}</td>
+                      <td className="py-3 px-4 text-right font-mono text-rose-600">{batch.error_rows}</td>
+                      <td className="py-3 px-4">{new Date(batch.created_at).toLocaleString()}</td>
+                      <td className="py-3 px-4 text-center">
+                        <button className="text-primary hover:underline font-semibold text-[11px]">
+                          View Details
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
 
           {/* Table Footer Pagination/Status */}
           <div className="px-4 py-2.5 bg-surface-container border-t border-outline-variant flex items-center justify-between text-xs text-on-surface-variant">
-            <span>Showing 0 of 0 import batches</span>
+            <span>Showing {batches.length > 0 ? (page - 1) * pageSize + 1 : 0} to {Math.min(page * pageSize, meta.totalCount)} of {meta.totalCount} import batches</span>
             <div className="flex items-center space-x-1">
-              <button className="px-2 py-1 rounded border border-outline-variant/60 bg-surface-container-lowest text-outline" disabled>Previous</button>
-              <button className="px-2 py-1 rounded border border-outline-variant/60 bg-surface-container-lowest text-outline" disabled>Next</button>
+              <button 
+                onClick={() => setPage(page - 1)}
+                disabled={page === 1}
+                className="px-2 py-1 rounded border border-outline-variant/60 bg-surface-container-lowest text-outline hover:bg-surface-container disabled:opacity-50" 
+              >
+                Previous
+              </button>
+              <button 
+                onClick={() => setPage(page + 1)}
+                disabled={page >= meta.totalPages}
+                className="px-2 py-1 rounded border border-outline-variant/60 bg-surface-container-lowest text-outline hover:bg-surface-container disabled:opacity-50" 
+              >
+                Next
+              </button>
             </div>
           </div>
         </div>
@@ -158,3 +233,4 @@ export function ExcelImport() {
     </main>
   );
 }
+

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   ArrowRightLeft, 
   Wrench, 
@@ -8,15 +8,24 @@ import {
   Search, 
   ChevronRight, 
   Calendar, 
-  ArrowRight 
+  ArrowRight,
+  Loader2
 } from 'lucide-react';
-import { handoverApi } from '../../lib/api.js';
+import { handoverApi, processApi, employeeApi } from '../../lib/api.js';
 import { Modal } from '../../components/ui/Modal.jsx';
 
 export function PMHandovers() {
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formState, setFormState] = useState({
+    registry_id: '',
+    to_pm_ecode: '',
+    scenario: 'PM_MOVED_PROJECT',
+    effective_date: new Date().toISOString().split('T')[0],
+    reason: ''
+  });
 
   // Fetch pending handovers
   const { data } = useQuery({
@@ -24,9 +33,49 @@ export function PMHandovers() {
     queryFn: () => handoverApi.listPendingHandovers(),
   });
 
+  const { data: processData } = useQuery({
+    queryKey: ['processes-all'],
+    queryFn: () => processApi.list({ page: 1, pageSize: 100 }),
+    enabled: isModalOpen
+  });
+
+  const { data: employeeData } = useQuery({
+    queryKey: ['employees-all'],
+    queryFn: () => employeeApi.list({ page: 1, pageSize: 100, status: 'ACTIVE' }),
+    enabled: isModalOpen
+  });
+
+  const submitHandoverMutation = useMutation({
+    mutationFn: (data) => processApi.requestHandover(data.registry_id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['pending-handovers']);
+      setIsModalOpen(false);
+      setFormState({
+        registry_id: '',
+        to_pm_ecode: '',
+        scenario: 'PM_MOVED_PROJECT',
+        effective_date: new Date().toISOString().split('T')[0],
+        reason: ''
+      });
+    },
+  });
+
+  const handleFormChange = (e) => {
+    const { id, value } = e.target;
+    setFormState(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleHandoverSubmit = (e) => {
+    e.preventDefault();
+    if (!formState.registry_id || !formState.to_pm_ecode || !formState.reason) {
+      alert("Please fill all required fields.");
+      return;
+    }
+    submitHandoverMutation.mutate(formState);
+  };
+
   const rawHandovers = data?.handovers || [];
 
-  // TODO: Phase 11 - Connect fully to backend API for handover details and endpoints once implemented.
   const displayItems = rawHandovers;
 
   const filteredItems = displayItems.filter(item => {
@@ -75,20 +124,6 @@ export function PMHandovers() {
           <ArrowRightLeft className="w-5 h-5" />
           <span>+ Initiate Handover</span>
         </button>
-      </div>
-
-      {/* Amber Warning / Construction Container */}
-      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3.5 shadow-sm">
-        <Wrench className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-        <div className="flex-1">
-          <h2 className="text-xs font-mono font-bold text-amber-900 tracking-wide">
-            BACKEND API PENDING • STAGING PREVIEW • SPEC v4.2
-          </h2>
-          <p className="text-xs text-amber-800 mt-0.5 font-normal leading-relaxed">
-            This screen requires the Handover request and review endpoints (Phase 11) which are not yet built. The UI layout is designed and ready for integration.
-          </p>
-        </div>
-        <span className="text-[10px] font-mono uppercase bg-amber-100 text-amber-800 px-2 py-0.5 rounded border border-amber-300">Phase 11 Ready</span>
       </div>
 
       {/* Scenarios Visual Legend Bar */}
@@ -232,50 +267,66 @@ export function PMHandovers() {
           </div>
         }
       >
-        <form className="space-y-4 text-xs font-body" onSubmit={(e) => { e.preventDefault(); setIsModalOpen(false); }}>
+        <form className="space-y-4 text-xs font-body" onSubmit={handleHandoverSubmit}>
           {/* Process Field */}
           <div>
-            <label className="block font-medium text-on-surface mb-1">
+            <label className="block font-medium text-on-surface mb-1" htmlFor="registry_id">
               Process <span className="text-error">*</span>
             </label>
             <div className="relative">
-              <select defaultValue="" className="w-full appearance-none bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary pr-8 cursor-pointer">
+              <select 
+                id="registry_id"
+                value={formState.registry_id}
+                onChange={handleFormChange}
+                disabled={submitHandoverMutation.isPending}
+                className="w-full appearance-none bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary pr-8 cursor-pointer"
+              >
                 <option disabled value="">Select process (e.g. PRC-0001 - Payment Gateway Ops)</option>
-                <option value="PRC-0089">PRC-0089 - Risk Analytics Platform</option>
-                <option value="PRC-0045">PRC-0045 - Cloud Migration</option>
-                <option value="PRC-0128">PRC-0128 - Market Research & Intel</option>
-                <option value="PRC-0012">PRC-0012 - Payment Gateway Operations</option>
+                {processData?.processes?.map(p => (
+                  <option key={p.registry_id} value={p.registry_id}>{p.process_code} - {p.process_name}</option>
+                ))}
               </select>
               <ChevronDown className="w-4 h-4 absolute right-2.5 top-2.5 pointer-events-none text-on-surface-variant" />
             </div>
-            <span className="text-[11px] text-on-surface-variant mt-0.5 block">Search by process code or functional name.</span>
+            <span className="text-[11px] text-on-surface-variant mt-0.5 block">Select canonical process entry.</span>
           </div>
 
           {/* New Project Manager Field */}
           <div>
-            <label className="block font-medium text-on-surface mb-1">
+            <label className="block font-medium text-on-surface mb-1" htmlFor="to_pm_ecode">
               New Project Manager <span className="text-error">*</span>
             </label>
             <div className="relative">
-              <select defaultValue="" className="w-full appearance-none bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary pr-8 cursor-pointer">
+              <select 
+                id="to_pm_ecode"
+                value={formState.to_pm_ecode}
+                onChange={handleFormChange}
+                disabled={submitHandoverMutation.isPending}
+                className="w-full appearance-none bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary pr-8 cursor-pointer"
+              >
                 <option disabled value="">Select active PM</option>
-                <option value="Amit R">Amit R (E1008 - Active PM)</option>
-                <option value="Priya M">Priya M (E1045 - Active PM)</option>
-                <option value="Saurabh F">Saurabh F (E1092 - Active PM)</option>
-                <option value="Rajesh K">Rajesh K (E1021 - Active PM)</option>
+                {employeeData?.employees?.map(emp => (
+                  <option key={emp.ecode} value={emp.ecode}>{emp.name} ({emp.ecode})</option>
+                ))}
               </select>
               <ChevronDown className="w-4 h-4 absolute right-2.5 top-2.5 pointer-events-none text-on-surface-variant" />
             </div>
-            <span className="text-[11px] text-on-surface-variant mt-0.5 block">Must be an active employee with PM authority.</span>
+            <span className="text-[11px] text-on-surface-variant mt-0.5 block">Must be an active employee.</span>
           </div>
 
           {/* Handover Scenario Field */}
           <div>
-            <label className="block font-medium text-on-surface mb-1">
-              Handover Scenario <span class="text-error">*</span>
+            <label className="block font-medium text-on-surface mb-1" htmlFor="scenario">
+              Handover Scenario <span className="text-error">*</span>
             </label>
             <div className="relative">
-              <select defaultValue="PM_MOVED_PROJECT" className="w-full appearance-none bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary pr-8 cursor-pointer font-mono">
+              <select 
+                id="scenario"
+                value={formState.scenario}
+                onChange={handleFormChange}
+                disabled={submitHandoverMutation.isPending}
+                className="w-full appearance-none bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary pr-8 cursor-pointer font-mono"
+              >
                 <option value="PM_MOVED_PROJECT">PM_MOVED_PROJECT</option>
                 <option value="PM_ROLE_CHANGE">PM_ROLE_CHANGE</option>
                 <option value="PM_LEFT_COMPANY">PM_LEFT_COMPANY</option>
@@ -289,21 +340,35 @@ export function PMHandovers() {
 
           {/* Effective Date Field */}
           <div>
-            <label className="block font-medium text-on-surface mb-1">
+            <label className="block font-medium text-on-surface mb-1" htmlFor="effective_date">
               Effective Date <span className="text-error">*</span>
             </label>
             <div className="relative">
-              <input defaultValue="2025-06-01" className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary pr-8 font-mono" type="date" />
-              <Calendar className="w-4 h-4 absolute right-2.5 top-2.5 pointer-events-none text-on-surface-variant" />
+              <input 
+                id="effective_date"
+                type="date"
+                value={formState.effective_date}
+                onChange={handleFormChange}
+                disabled={submitHandoverMutation.isPending}
+                className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary pr-8 font-mono" 
+              />
             </div>
           </div>
 
           {/* Reason Field */}
           <div>
-            <label className="block font-medium text-on-surface mb-1">
+            <label className="block font-medium text-on-surface mb-1" htmlFor="reason">
               Reason <span className="text-error">*</span>
             </label>
-            <textarea className="w-full bg-surface-container-low border border-outline-variant rounded-lg p-2.5 text-xs text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-1 focus:ring-primary resize-none" placeholder="Provide operational justification or audit rationale for this PM ownership transfer..." rows="3"></textarea>
+            <textarea 
+              id="reason"
+              value={formState.reason}
+              onChange={handleFormChange}
+              disabled={submitHandoverMutation.isPending}
+              className="w-full bg-surface-container-low border border-outline-variant rounded-lg p-2.5 text-xs text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-1 focus:ring-primary resize-none" 
+              placeholder="Provide operational justification or audit rationale for this PM ownership transfer..." 
+              rows="3"
+            />
             <span className="text-[11px] text-on-surface-variant mt-0.5 block">Recorded permanently in the immutable audit ledger.</span>
           </div>
 
@@ -312,16 +377,18 @@ export function PMHandovers() {
             <button 
               type="button" 
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 border border-outline rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container font-medium text-xs transition-colors"
+              disabled={submitHandoverMutation.isPending}
+              className="px-4 py-2 border border-outline rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container font-medium text-xs transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button 
               type="submit" 
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-dim text-on-primary rounded-lg font-medium text-xs transition-colors shadow-sm"
+              disabled={submitHandoverMutation.isPending}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-dim text-on-primary rounded-lg font-medium text-xs transition-colors shadow-sm disabled:opacity-50"
             >
-              <span>Submit Handover Request</span>
-              <ArrowRight className="w-4 h-4" />
+              {submitHandoverMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Submit Handover Request</span>}
+              {!submitHandoverMutation.isPending && <ArrowRight className="w-4 h-4" />}
             </button>
           </div>
         </form>

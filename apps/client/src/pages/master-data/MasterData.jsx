@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { masterApi } from '../../lib/api';
 import { 
   Building2, 
   Building, 
@@ -24,6 +26,44 @@ import {
 
 export function MasterData() {
   const [activeTab, setActiveTab] = useState('VERTICALS');
+  const [search, setSearch] = useState('');
+
+  const { data: verticalsData, isLoading: isLoadingVerticals } = useQuery({
+    queryKey: ['master-verticals', search],
+    queryFn: () => masterApi.getVerticals({ search }),
+  });
+
+  const { data: sbusData, isLoading: isLoadingSBUs } = useQuery({
+    queryKey: ['master-sbus', search],
+    queryFn: () => masterApi.getSBUs({ search }),
+  });
+
+  const { data: clientsData, isLoading: isLoadingClients } = useQuery({
+    queryKey: ['master-clients', search],
+    queryFn: () => masterApi.getClients({ search }),
+  });
+
+  const { data: locationsData, isLoading: isLoadingLocations } = useQuery({
+    queryKey: ['master-locations', search],
+    queryFn: () => masterApi.getLocations({ search }),
+  });
+
+  const verticals = verticalsData?.verticals || [];
+  const sbus = sbusData?.sbus || [];
+  const clients = clientsData?.clients || [];
+  const locations = locationsData?.locations || [];
+
+  const getTableData = () => {
+    switch(activeTab) {
+      case 'VERTICALS': return { data: verticals, loading: isLoadingVerticals };
+      case 'SBUS': return { data: sbus, loading: isLoadingSBUs };
+      case 'CLIENTS': return { data: clients, loading: isLoadingClients };
+      case 'LOCATIONS': return { data: locations, loading: isLoadingLocations };
+      default: return { data: [], loading: false };
+    }
+  };
+
+  const { data: currentData, loading: isCurrentLoading } = getTableData();
 
   return (
     <main className="flex-1 flex flex-col overflow-y-auto bg-background focus:outline-none">
@@ -57,7 +97,7 @@ export function MasterData() {
             >
               <Building2 className="w-5 h-5" />
               <span>Verticals</span>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === 'VERTICALS' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant font-medium'}`}>4</span>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === 'VERTICALS' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant font-medium'}`}>{verticals.length}</span>
             </button>
             {/* Tab 2: SBUs */}
             <button 
@@ -67,7 +107,7 @@ export function MasterData() {
             >
               <Building className="w-5 h-5" />
               <span>SBUs</span>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === 'SBUS' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant font-medium'}`}>10</span>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === 'SBUS' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant font-medium'}`}>{sbus.length}</span>
             </button>
             {/* Tab 3: Clients */}
             <button 
@@ -77,7 +117,7 @@ export function MasterData() {
             >
               <Users className="w-5 h-5" />
               <span>Clients</span>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === 'CLIENTS' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant font-medium'}`}>18</span>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === 'CLIENTS' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant font-medium'}`}>{clients.length}</span>
             </button>
             {/* Tab 4: Locations */}
             <button 
@@ -87,7 +127,7 @@ export function MasterData() {
             >
               <MapPin className="w-5 h-5" />
               <span>Locations</span>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === 'LOCATIONS' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant font-medium'}`}>6</span>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === 'LOCATIONS' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant font-medium'}`}>{locations.length}</span>
             </button>
           </div>
         </section>
@@ -98,7 +138,13 @@ export function MasterData() {
             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-outline">
               <Search className="w-5 h-5" />
             </div>
-            <input className="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant/70 rounded-lg text-sm text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-150 shadow-xs" placeholder="Search vertical code or name..." type="text"/>
+            <input 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant/70 rounded-lg text-sm text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-150 shadow-xs" 
+              placeholder={`Search ${activeTab.toLowerCase()}...`} 
+              type="text"
+            />
           </div>
           <div className="flex items-center gap-2.5 shrink-0">
             <button className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-outline-variant/60 bg-surface-container-lowest hover:bg-surface-container text-xs font-semibold text-on-surface transition-colors" type="button">
@@ -107,31 +153,125 @@ export function MasterData() {
             </button>
             <button className="bg-primary hover:bg-primary-dim text-on-primary font-medium px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all duration-150 active:scale-95 text-sm" type="button">
               <Plus className="w-5 h-5 font-bold" />
-              <span>Add Vertical</span>
+              <span>Add {activeTab.slice(0, -1)}</span>
             </button>
           </div>
         </section>
 
-        {/* Verticals Data Table Container */}
+        {/* Data Table Container */}
         <section className="bg-surface-container-lowest rounded-xl border border-outline-variant/50 shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-surface-container-low border-b border-outline-variant/50 text-xs font-semibold text-on-surface-variant uppercase tracking-wider font-mono">
-                  <th className="py-3 px-5 w-48" scope="col">Code</th>
-                  <th className="py-3 px-5" scope="col">Name</th>
-                  <th className="py-3 px-5 w-36" scope="col">Status</th>
-                  <th className="py-3 px-5 w-36 text-center" scope="col">SBUs Count</th>
-                  <th className="py-3 px-5 w-44 text-right" scope="col">Actions</th>
+                  {activeTab === 'VERTICALS' && (
+                    <>
+                      <th className="py-3 px-5 w-48" scope="col">Code</th>
+                      <th className="py-3 px-5" scope="col">Name</th>
+                      <th className="py-3 px-5 w-36" scope="col">Status</th>
+                      <th className="py-3 px-5 w-44 text-right" scope="col">Actions</th>
+                    </>
+                  )}
+                  {activeTab === 'SBUS' && (
+                    <>
+                      <th className="py-3 px-5 w-48" scope="col">Code</th>
+                      <th className="py-3 px-5" scope="col">Name</th>
+                      <th className="py-3 px-5" scope="col">Vertical</th>
+                      <th className="py-3 px-5 w-36" scope="col">Status</th>
+                      <th className="py-3 px-5 w-44 text-right" scope="col">Actions</th>
+                    </>
+                  )}
+                  {activeTab === 'CLIENTS' && (
+                    <>
+                      <th className="py-3 px-5 w-48" scope="col">Client ID</th>
+                      <th className="py-3 px-5" scope="col">Name</th>
+                      <th className="py-3 px-5" scope="col">Type</th>
+                      <th className="py-3 px-5 w-36" scope="col">Status</th>
+                      <th className="py-3 px-5 w-44 text-right" scope="col">Actions</th>
+                    </>
+                  )}
+                  {activeTab === 'LOCATIONS' && (
+                    <>
+                      <th className="py-3 px-5 w-48" scope="col">Location ID</th>
+                      <th className="py-3 px-5" scope="col">City</th>
+                      <th className="py-3 px-5" scope="col">State</th>
+                      <th className="py-3 px-5 w-36" scope="col">Status</th>
+                      <th className="py-3 px-5 w-44 text-right" scope="col">Actions</th>
+                    </>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/20 text-sm">
-                {/* TODO: Phase 6 - Fetch and map master data (Verticals, SBUs, Clients, Locations) from masterApi */}
-                <tr>
-                  <td colSpan="5" className="py-8 text-center text-on-surface-variant text-sm">
-                    No data available.
-                  </td>
-                </tr>
+                {isCurrentLoading ? (
+                  <tr>
+                    <td colSpan="5" className="py-8 text-center text-on-surface-variant text-sm">
+                      Loading data...
+                    </td>
+                  </tr>
+                ) : currentData.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" className="py-8 text-center text-on-surface-variant text-sm">
+                      No data available.
+                    </td>
+                  </tr>
+                ) : (
+                  currentData.map((item) => (
+                    <tr key={item.id || item.vertical_id || item.sbu_id || item.client_id || item.location_id} className="hover:bg-surface-container/30 transition-colors">
+                      {activeTab === 'VERTICALS' && (
+                        <>
+                          <td className="py-3 px-5 font-mono text-primary font-medium">{item.vertical_code}</td>
+                          <td className="py-3 px-5 text-on-surface">{item.vertical_name}</td>
+                          <td className="py-3 px-5">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase border ${item.is_active ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-slate-600 bg-slate-50 border-slate-200'}`}>
+                              {item.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                          </td>
+                        </>
+                      )}
+                      {activeTab === 'SBUS' && (
+                        <>
+                          <td className="py-3 px-5 font-mono text-primary font-medium">{item.sbu_code}</td>
+                          <td className="py-3 px-5 text-on-surface">{item.sbu_name}</td>
+                          <td className="py-3 px-5 text-on-surface">{item.vertical_name || item.vertical_code}</td>
+                          <td className="py-3 px-5">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase border ${item.is_active ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-slate-600 bg-slate-50 border-slate-200'}`}>
+                              {item.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                          </td>
+                        </>
+                      )}
+                      {activeTab === 'CLIENTS' && (
+                        <>
+                          <td className="py-3 px-5 font-mono text-primary font-medium">{item.client_id}</td>
+                          <td className="py-3 px-5 text-on-surface">{item.client_name}</td>
+                          <td className="py-3 px-5 text-on-surface">{item.client_type}</td>
+                          <td className="py-3 px-5">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase border ${item.is_active ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-slate-600 bg-slate-50 border-slate-200'}`}>
+                              {item.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                          </td>
+                        </>
+                      )}
+                      {activeTab === 'LOCATIONS' && (
+                        <>
+                          <td className="py-3 px-5 font-mono text-primary font-medium">{item.location_id}</td>
+                          <td className="py-3 px-5 text-on-surface">{item.city}</td>
+                          <td className="py-3 px-5 text-on-surface">{item.state}</td>
+                          <td className="py-3 px-5">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase border ${item.is_active ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-slate-600 bg-slate-50 border-slate-200'}`}>
+                              {item.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                          </td>
+                        </>
+                      )}
+                      <td className="py-3 px-5 text-right">
+                        <button className="text-on-surface-variant hover:text-primary transition-colors p-1" title="Edit">
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -140,7 +280,7 @@ export function MasterData() {
           <div className="px-6 py-3.5 bg-surface-container-low border-t border-outline-variant/40 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-on-surface-variant">
             <div className="flex items-center gap-2">
               <Info className="w-4 h-4 text-primary" />
-              <span>Showing <strong>0</strong> active records</span>
+              <span>Showing <strong>{currentData.length}</strong> records</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5 font-mono text-[11px] text-outline">
@@ -162,7 +302,7 @@ export function MasterData() {
             <div className="flex flex-col">
               <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Vertical Hierarchy</span>
               <span className="text-sm font-semibold text-on-surface mt-0.5">Strict SBU-to-Client Binding</span>
-              <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">All 4 active verticals map automatically into master reporting ledgers and access scopes.</p>
+              <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">All {verticals.length} active verticals map automatically into master reporting ledgers and access scopes.</p>
             </div>
           </div>
           <div className="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/40 shadow-xs flex items-start gap-4">
@@ -190,3 +330,4 @@ export function MasterData() {
     </main>
   );
 }
+

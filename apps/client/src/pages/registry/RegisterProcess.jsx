@@ -1,7 +1,92 @@
-import { ArrowLeft, Info, Shapes, MapPin, Calendar, Users, UserCheck, Building2, UserCog, User, Lock, CheckCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
+import { ArrowLeft, Info, Shapes, MapPin, Calendar, Users, UserCheck, Building2, UserCog, User, Lock, CheckCircle, Loader2 } from 'lucide-react';
 import { NavLink } from 'react-router';
+import { processApi, masterApi, employeeApi } from '../../lib/api.js';
 
 export function RegisterProcess() {
+  const navigate = useNavigate();
+  const [masters, setMasters] = useState({ verticals: [], sbus: [], clients: [] });
+  const [employees, setEmployees] = useState([]);
+  
+  const [formData, setFormData] = useState({
+    vertical_id: '',
+    sbu_id: '',
+    process_name: '',
+    client_id: '',
+    client_type: 'DOMESTIC',
+    wps_code: '',
+    status: 'ACTIVE',
+    state: '',
+    city: '',
+    facility_name: '',
+    started_on: '',
+    ended_on: '',
+    pm_ecode: '',
+  });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+
+  useEffect(() => {
+    masterApi.getAll().then((data) => {
+      if (data) {
+        setMasters({
+          verticals: data.verticals || [],
+          sbus: data.sbus || [],
+          clients: data.clients || [],
+        });
+      }
+    }).catch(err => console.warn('Could not load masters', err));
+
+    employeeApi.list({ page: 1, pageSize: 100, status: 'ACTIVE' }).then(data => {
+      if (data?.employees) setEmployees(data.employees);
+    }).catch(err => console.warn('Could not load employees', err));
+  }, []);
+
+  const filteredSBUs = formData.vertical_id 
+    ? masters.sbus.filter(s => String(s.vertical_id) === String(formData.vertical_id))
+    : masters.sbus;
+
+  const handleChange = (e) => {
+    const { id, name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [id || name]: value
+    }));
+  };
+
+  const handleStatusChange = (status) => {
+    setFormData(prev => ({ ...prev, status }));
+  };
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitError(null);
+    setIsSubmitting(true);
+    
+    try {
+      const payload = {
+        vertical_id: Number(formData.vertical_id),
+        sbu_id: formData.sbu_id ? Number(formData.sbu_id) : null,
+        process_name: formData.process_name.trim(),
+        wps_code: formData.wps_code?.trim() || null,
+        client_id: formData.client_id ? Number(formData.client_id) : null,
+        client_type: formData.client_type,
+        status: formData.status,
+        started_on: formData.started_on || null,
+        pm_ecode: formData.pm_ecode?.trim() || null,
+      };
+      
+      const result = await processApi.create(payload);
+      navigate(`/registry/${result.process.registry_id}`);
+    } catch (err) {
+      setSubmitError(err.message || 'Failed to register process.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
       {/* Page Navigation Header */}
@@ -35,7 +120,14 @@ export function RegisterProcess() {
       </div>
 
       {/* Main Form Container */}
-      <form className="flex flex-col gap-6" onSubmit={(e) => e.preventDefault()}>
+      <form className="flex flex-col gap-6" onSubmit={onSubmit}>
+        {submitError && (
+          <div role="alert" className="p-3 rounded-lg bg-error/10 border border-error/20 text-error flex items-start gap-2.5 text-xs font-medium">
+            <Info className="w-4 h-4 shrink-0 mt-0.5" />
+            <div className="leading-relaxed">{submitError}</div>
+          </div>
+        )}
+        
         {/* Two-Column Main Form Card */}
         <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 shadow-sm">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -48,14 +140,26 @@ export function RegisterProcess() {
 
               {/* Vertical * (Required Dropdown) */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-on-surface flex items-center justify-between" htmlFor="vertical-select">
+                <label className="text-xs font-semibold text-on-surface flex items-center justify-between" htmlFor="vertical_id">
                   <span>Vertical <span className="text-error">*</span></span>
                   <span className="text-[11px] text-on-surface-variant font-normal">Primary Sector</span>
                 </label>
                 <div className="relative">
-                  {/* TODO: Phase 6 - Fetch Vertical taxonomy from masterApi */}
-                  <select id="vertical-select" className="w-full text-xs rounded-lg border border-outline-variant bg-surface-bright py-2.5 px-3 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
+                  <select 
+                    id="vertical_id" 
+                    value={formData.vertical_id}
+                    onChange={(e) => {
+                      handleChange(e);
+                      setFormData(prev => ({ ...prev, sbu_id: '' }));
+                    }}
+                    required
+                    disabled={isSubmitting}
+                    className="w-full text-xs rounded-lg border border-outline-variant bg-surface-bright py-2.5 px-3 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                  >
                     <option value="">Select Vertical...</option>
+                    {masters.verticals.map(v => (
+                      <option key={v.vertical_id} value={v.vertical_id}>{v.vertical_code} — {v.vertical_name}</option>
+                    ))}
                   </select>
                 </div>
                 <p className="text-[11px] text-on-surface-variant">Governing industry vertical taxonomy.</p>
@@ -63,34 +167,63 @@ export function RegisterProcess() {
 
               {/* SBU (Cascaded Dropdown) */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-on-surface" htmlFor="sbu-select">
+                <label className="text-xs font-semibold text-on-surface" htmlFor="sbu_id">
                   Strategic Business Unit (SBU) <span className="text-error">*</span>
                 </label>
-                {/* TODO: Phase 6 - Fetch SBUs dynamically based on Vertical via masterApi */}
-                <select id="sbu-select" className="w-full text-xs rounded-lg border border-outline-variant bg-surface-bright py-2.5 px-3 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
+                <select 
+                  id="sbu_id" 
+                  value={formData.sbu_id}
+                  onChange={handleChange}
+                  required
+                  disabled={isSubmitting}
+                  className="w-full text-xs rounded-lg border border-outline-variant bg-surface-bright py-2.5 px-3 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                >
                   <option value="">Select SBU...</option>
+                  {filteredSBUs.map(s => (
+                    <option key={s.sbu_id} value={s.sbu_id}>{s.sbu_code} — {s.sbu_name}</option>
+                  ))}
                 </select>
                 <p className="text-[11px] text-on-surface-variant">Cascades dynamically from selected Vertical taxonomy.</p>
               </div>
 
               {/* Process Name */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-on-surface flex items-center justify-between" htmlFor="process-name">
+                <label className="text-xs font-semibold text-on-surface flex items-center justify-between" htmlFor="process_name">
                   <span>Process Name</span>
                   <span className="text-[11px] text-on-surface-variant font-normal">Optional for TRANSITION</span>
                 </label>
-                <input id="process-name" type="text" placeholder="e.g. Treasury Operations Clearing" className="w-full text-xs rounded-lg border border-outline-variant bg-surface-bright py-2 px-3 text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+                <input 
+                  id="process_name" 
+                  value={formData.process_name}
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                  type="text" 
+                  placeholder="e.g. Treasury Operations Clearing" 
+                  className="w-full text-xs rounded-lg border border-outline-variant bg-surface-bright py-2 px-3 text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" 
+                />
                 <p className="text-[11px] text-on-surface-variant">Descriptive title of the operational workflow unit.</p>
               </div>
 
-              {/* Client (Searchable Dropdown) */}
+              {/* Client (Dropdown) */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-on-surface flex items-center justify-between" htmlFor="client-search">
+                <label className="text-xs font-semibold text-on-surface flex items-center justify-between" htmlFor="client_id">
                   <span>Client <span className="text-error">*</span></span>
                   <span className="text-[11px] text-on-surface-variant font-normal">Registered Entity</span>
                 </label>
                 <div className="relative">
-                  <input id="client-search" type="text" placeholder="Select or search client (e.g. HDFC Bank, ICICI, Nykaa)..." className="w-full text-xs rounded-lg border border-outline-variant bg-surface-bright py-2 px-3 text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+                  <select 
+                    id="client_id" 
+                    value={formData.client_id}
+                    onChange={handleChange}
+                    required
+                    disabled={isSubmitting}
+                    className="w-full text-xs rounded-lg border border-outline-variant bg-surface-bright py-2 px-3 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                  >
+                    <option value="">Select Client...</option>
+                    {masters.clients.map(c => (
+                      <option key={c.client_id} value={c.client_id}>{c.client_name}</option>
+                    ))}
+                  </select>
                 </div>
                 <p className="text-[11px] text-on-surface-variant">Associated master corporate or contract partner.</p>
               </div>
@@ -98,15 +231,29 @@ export function RegisterProcess() {
               {/* Client Type & WPS Code Row */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-on-surface" htmlFor="client-type">Client Type</label>
-                  <select id="client-type" className="w-full text-xs rounded-lg border border-outline-variant bg-surface-bright py-2 px-3 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
+                  <label className="text-xs font-semibold text-on-surface" htmlFor="client_type">Client Type</label>
+                  <select 
+                    id="client_type" 
+                    value={formData.client_type}
+                    onChange={handleChange}
+                    disabled={isSubmitting}
+                    className="w-full text-xs rounded-lg border border-outline-variant bg-surface-bright py-2 px-3 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                  >
                     <option value="DOMESTIC">DOMESTIC</option>
                     <option value="INTERNATIONAL">INTERNATIONAL</option>
                   </select>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-on-surface" htmlFor="wps-code">WPS Code</label>
-                  <input id="wps-code" type="text" placeholder="e.g. WPS-BFSI-088" className="w-full text-xs rounded-lg border border-outline-variant bg-surface-bright py-2 px-3 text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+                  <label className="text-xs font-semibold text-on-surface" htmlFor="wps_code">WPS Code</label>
+                  <input 
+                    id="wps_code" 
+                    value={formData.wps_code}
+                    onChange={handleChange}
+                    disabled={isSubmitting}
+                    type="text" 
+                    placeholder="e.g. WPS-BFSI-088" 
+                    className="w-full text-xs rounded-lg border border-outline-variant bg-surface-bright py-2 px-3 text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" 
+                  />
                 </div>
               </div>
               <p className="text-[11px] text-on-surface-variant -mt-2">Work Breakdown Structure code, unique identifier.</p>
@@ -118,17 +265,31 @@ export function RegisterProcess() {
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   {/* ACTIVE Option */}
-                  <label className="relative flex items-center justify-between p-3 rounded-lg border-2 border-primary bg-secondary-container/20 cursor-pointer hover:border-primary transition-all">
+                  <label className={`relative flex items-center justify-between p-3 rounded-lg border-2 cursor-pointer transition-all ${formData.status === 'ACTIVE' ? 'border-primary bg-secondary-container/20' : 'border-transparent bg-surface-bright hover:border-outline-variant'}`}>
                     <div className="flex items-center gap-2">
-                      <input type="radio" name="initial-status" value="ACTIVE" className="text-primary focus:ring-primary h-4 w-4" defaultChecked />
+                      <input 
+                        type="radio" 
+                        name="initial-status" 
+                        checked={formData.status === 'ACTIVE'}
+                        onChange={() => handleStatusChange('ACTIVE')}
+                        disabled={isSubmitting}
+                        className="text-primary focus:ring-primary h-4 w-4" 
+                      />
                       <span className="text-xs font-semibold text-on-surface">Active Production</span>
                     </div>
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">ACTIVE</span>
                   </label>
                   {/* TRANSITION Option */}
-                  <label className="relative flex items-center justify-between p-3 rounded-lg border border-outline-variant bg-surface-bright hover:border-outline cursor-pointer transition-all">
+                  <label className={`relative flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${formData.status === 'TRANSITION' ? 'border-primary bg-secondary-container/20' : 'border-outline-variant bg-surface-bright hover:border-outline'}`}>
                     <div className="flex items-center gap-2">
-                      <input type="radio" name="initial-status" value="TRANSITION" className="text-primary focus:ring-primary h-4 w-4" />
+                      <input 
+                        type="radio" 
+                        name="initial-status" 
+                        checked={formData.status === 'TRANSITION'}
+                        onChange={() => handleStatusChange('TRANSITION')}
+                        disabled={isSubmitting}
+                        className="text-primary focus:ring-primary h-4 w-4" 
+                      />
                       <span className="text-xs font-medium text-on-surface">Transition Phase</span>
                     </div>
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider bg-amber-100 text-amber-900 border border-amber-300">TRANSITION</span>
@@ -148,19 +309,43 @@ export function RegisterProcess() {
               {/* State & City Row */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-on-surface" htmlFor="state-input">State</label>
-                  <input id="state-input" type="text" placeholder="e.g. Maharashtra, Karnataka" className="w-full text-xs rounded-lg border border-outline-variant bg-surface-bright py-2 px-3 text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+                  <label className="text-xs font-semibold text-on-surface" htmlFor="state">State</label>
+                  <input 
+                    id="state" 
+                    value={formData.state}
+                    onChange={handleChange}
+                    disabled={isSubmitting}
+                    type="text" 
+                    placeholder="e.g. Maharashtra, Karnataka" 
+                    className="w-full text-xs rounded-lg border border-outline-variant bg-surface-bright py-2 px-3 text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" 
+                  />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-on-surface" htmlFor="city-input">City</label>
-                  <input id="city-input" type="text" placeholder="e.g. Mumbai, Bengaluru" className="w-full text-xs rounded-lg border border-outline-variant bg-surface-bright py-2 px-3 text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+                  <label className="text-xs font-semibold text-on-surface" htmlFor="city">City</label>
+                  <input 
+                    id="city" 
+                    value={formData.city}
+                    onChange={handleChange}
+                    disabled={isSubmitting}
+                    type="text" 
+                    placeholder="e.g. Mumbai, Bengaluru" 
+                    className="w-full text-xs rounded-lg border border-outline-variant bg-surface-bright py-2 px-3 text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" 
+                  />
                 </div>
               </div>
 
               {/* Facility Name */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-on-surface" htmlFor="facility-input">Facility Name / Delivery Center</label>
-                <input id="facility-input" type="text" placeholder="e.g. Andheri DC, Whitefield Campus" className="w-full text-xs rounded-lg border border-outline-variant bg-surface-bright py-2 px-3 text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+                <label className="text-xs font-semibold text-on-surface" htmlFor="facility_name">Facility Name / Delivery Center</label>
+                <input 
+                  id="facility_name" 
+                  value={formData.facility_name}
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                  type="text" 
+                  placeholder="e.g. Andheri DC, Whitefield Campus" 
+                  className="w-full text-xs rounded-lg border border-outline-variant bg-surface-bright py-2 px-3 text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" 
+                />
                 <p className="text-[11px] text-on-surface-variant">Physical or Virtual center hosting this operation.</p>
               </div>
 
@@ -172,19 +357,33 @@ export function RegisterProcess() {
                 </span>
                 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-on-surface" htmlFor="started-on">
+                  <label className="text-xs font-semibold text-on-surface" htmlFor="started_on">
                     Started On <span className="text-error">*</span>
                   </label>
                   <div className="relative">
-                    <input id="started-on" type="date" className="w-full text-xs rounded-lg border border-outline-variant bg-surface-bright py-2 px-3 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+                    <input 
+                      id="started_on" 
+                      value={formData.started_on}
+                      onChange={handleChange}
+                      disabled={isSubmitting}
+                      type="date" 
+                      className="w-full text-xs rounded-lg border border-outline-variant bg-surface-bright py-2 px-3 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" 
+                    />
                   </div>
                   <p className="text-[11px] text-on-surface-variant">Required when Initial Status is set to ACTIVE.</p>
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-on-surface" htmlFor="ended-on">Ended On</label>
+                  <label className="text-xs font-semibold text-on-surface" htmlFor="ended_on">Ended On</label>
                   <div className="relative">
-                    <input id="ended-on" type="date" className="w-full text-xs rounded-lg border border-outline-variant bg-surface-bright py-2 px-3 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+                    <input 
+                      id="ended_on" 
+                      value={formData.ended_on}
+                      onChange={handleChange}
+                      disabled={isSubmitting}
+                      type="date" 
+                      className="w-full text-xs rounded-lg border border-outline-variant bg-surface-bright py-2 px-3 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" 
+                    />
                   </div>
                   <p className="text-[11px] text-on-surface-variant">Optional / deactivation date if predefined lifecycle window.</p>
                 </div>
@@ -223,9 +422,8 @@ export function RegisterProcess() {
                 <UserCheck className="w-4 h-4 text-on-surface-variant" />
               </div>
               <span className="text-xs font-semibold text-on-surface truncate">OPS Quality Head</span>
-              {/* TODO: Phase 4 - Fetch applicable employees by role from employeeApi */}
               <div className="relative mt-1">
-                <select className="w-full text-[11px] rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+                <select className="w-full text-[11px] rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none" disabled>
                   <option>Unassigned (Escalate)</option>
                 </select>
               </div>
@@ -238,9 +436,8 @@ export function RegisterProcess() {
                 <Building2 className="w-4 h-4 text-on-surface-variant" />
               </div>
               <span className="text-xs font-semibold text-on-surface truncate">CBO</span>
-              {/* TODO: Phase 4 - Fetch applicable employees by role from employeeApi */}
               <div className="relative mt-1">
-                <select className="w-full text-[11px] rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+                <select className="w-full text-[11px] rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none" disabled>
                   <option>Unassigned (Escalate)</option>
                 </select>
               </div>
@@ -253,9 +450,8 @@ export function RegisterProcess() {
                 <UserCog className="w-4 h-4 text-on-surface-variant" />
               </div>
               <span className="text-xs font-semibold text-on-surface truncate">SBU Head</span>
-              {/* TODO: Phase 4 - Fetch applicable employees by role from employeeApi */}
               <div className="relative mt-1">
-                <select className="w-full text-[11px] rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+                <select className="w-full text-[11px] rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none" disabled>
                   <option>Unassigned (Escalate)</option>
                 </select>
               </div>
@@ -268,9 +464,8 @@ export function RegisterProcess() {
                 <Users className="w-4 h-4 text-on-surface-variant" />
               </div>
               <span className="text-xs font-semibold text-on-surface truncate">Account Head</span>
-              {/* TODO: Phase 4 - Fetch applicable employees by role from employeeApi */}
               <div className="relative mt-1">
-                <select className="w-full text-[11px] rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+                <select className="w-full text-[11px] rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none" disabled>
                   <option>Unassigned (Escalate)</option>
                 </select>
               </div>
@@ -283,10 +478,18 @@ export function RegisterProcess() {
                 <User className="w-4 h-4 text-primary" />
               </div>
               <span className="text-xs font-semibold text-on-surface truncate">Project Manager</span>
-              {/* TODO: Phase 4 - Fetch applicable employees by role from employeeApi */}
               <div className="relative mt-1">
-                <select className="w-full text-[11px] font-medium rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none">
-                  <option>Unassigned (Escalate)</option>
+                <select 
+                  id="pm_ecode"
+                  value={formData.pm_ecode}
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                  className="w-full text-[11px] font-medium rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                >
+                  <option value="">Unassigned (Escalate)</option>
+                  {employees.map(emp => (
+                    <option key={emp.ecode} value={emp.ecode}>{emp.name}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -300,15 +503,28 @@ export function RegisterProcess() {
             <span>Audit target: Action will create immutable genesis log entry in <strong>Audit Ledger</strong></span>
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-            <button type="button" className="px-4 py-2 text-xs font-semibold text-on-surface-variant hover:text-on-surface bg-surface-container hover:bg-surface-container-high rounded-lg transition-colors duration-150">
+            <button 
+              type="button" 
+              onClick={() => navigate('/registry')}
+              disabled={isSubmitting}
+              className="px-4 py-2 text-xs font-semibold text-on-surface-variant hover:text-on-surface bg-surface-container hover:bg-surface-container-high rounded-lg transition-colors duration-150 disabled:opacity-50"
+            >
               Cancel
             </button>
-            <button type="button" className="px-4 py-2 text-xs font-semibold text-secondary hover:text-on-secondary-container bg-secondary-container/50 hover:bg-secondary-container border border-outline-variant rounded-lg transition-colors duration-150">
+            <button 
+              type="button" 
+              disabled={isSubmitting}
+              className="px-4 py-2 text-xs font-semibold text-secondary hover:text-on-secondary-container bg-secondary-container/50 hover:bg-secondary-container border border-outline-variant rounded-lg transition-colors duration-150 disabled:opacity-50"
+            >
               Save as Draft
             </button>
-            <button type="submit" className="flex items-center gap-2 px-5 py-2 text-xs font-semibold text-on-primary bg-primary hover:bg-primary-dim shadow-sm rounded-lg transition-colors duration-150">
-              <CheckCircle className="w-4 h-4" />
-              <span>Create Process</span>
+            <button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="flex items-center gap-2 px-5 py-2 text-xs font-semibold text-on-primary bg-primary hover:bg-primary-dim shadow-sm rounded-lg transition-colors duration-150 disabled:opacity-50"
+            >
+              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+              <span>{isSubmitting ? 'Creating...' : 'Create Process'}</span>
             </button>
           </div>
         </div>

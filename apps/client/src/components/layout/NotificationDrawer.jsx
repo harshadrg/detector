@@ -1,9 +1,68 @@
 import { useState, useRef, useEffect } from 'react';
-import { Bell, CheckSquare, ArrowLeftRight, AlertTriangle, CheckCircle, ShieldCheck, UserPlus } from 'lucide-react';
+import { Bell, CheckSquare, ArrowLeftRight, AlertTriangle, CheckCircle, ShieldCheck, UserPlus, Info } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { notificationApi } from '../../lib/api';
+
+function formatRelativeTime(dateString) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now - date) / 1000);
+  
+  if (diffInSeconds < 60) return 'Just now';
+  
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+  
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+  
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 7) return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+  
+  return date.toLocaleDateString();
+}
+
+function getIconForNotificationType(type) {
+  switch (type) {
+    case 'APPROVAL_REQUIRED': return <CheckSquare className="w-4 h-4" />;
+    case 'STATUS_CHANGE': return <ArrowLeftRight className="w-4 h-4" />;
+    case 'WARNING': return <AlertTriangle className="w-4 h-4" />;
+    case 'SECURITY': return <ShieldCheck className="w-4 h-4" />;
+    case 'INFO': 
+    default: return <Info className="w-4 h-4" />;
+  }
+}
+
+function getColorClassesForType(type, isRead) {
+  if (isRead) {
+    return {
+      border: 'border-transparent',
+      bg: 'bg-surface-container-low/60',
+      iconBg: 'bg-surface-container-high text-on-surface-variant',
+      hover: 'hover:bg-surface-container',
+      opacity: 'opacity-80'
+    };
+  }
+
+  switch (type) {
+    case 'APPROVAL_REQUIRED':
+      return { border: 'border-primary', bg: 'bg-surface-container-lowest', iconBg: 'bg-secondary-container text-primary', hover: 'hover:bg-surface-container-low', opacity: '' };
+    case 'STATUS_CHANGE':
+      return { border: 'border-secondary', bg: 'bg-surface-container-lowest', iconBg: 'bg-surface-container-highest text-secondary', hover: 'hover:bg-surface-container-low', opacity: '' };
+    case 'WARNING':
+      return { border: 'border-amber-500', bg: 'bg-surface-container-lowest', iconBg: 'bg-amber-50 text-amber-700', hover: 'hover:bg-surface-container-low', opacity: '' };
+    case 'SECURITY':
+    case 'INFO':
+    default:
+      return { border: 'border-emerald-500', bg: 'bg-surface-container-lowest', iconBg: 'bg-emerald-50 text-emerald-700', hover: 'hover:bg-surface-container-low', opacity: '' };
+  }
+}
 
 export function NotificationDrawer() {
   const [isOpen, setIsOpen] = useState(false);
+  const [filter, setFilter] = useState('ALL'); // 'ALL' or 'UNREAD'
   const containerRef = useRef(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -17,6 +76,30 @@ export function NotificationDrawer() {
     };
   }, [containerRef]);
 
+  const { data, isLoading } = useQuery({
+    queryKey: ['notifications', filter],
+    queryFn: () => notificationApi.list({ unreadOnly: filter === 'UNREAD', pageSize: 15 }),
+    refetchInterval: 60000, // Poll every minute
+  });
+
+  const markAsReadMutation = useMutation({
+    mutationFn: (id) => notificationApi.markAsRead(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+
+  const markAllAsReadMutation = useMutation({
+    mutationFn: () => notificationApi.markAllAsRead(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+
+  const notifications = data?.notifications || [];
+  const unreadCount = data?.unreadCount || 0;
+  const totalCount = data?.meta?.totalCount || 0;
+
   return (
     <div className="relative" ref={containerRef}>
       <button 
@@ -27,10 +110,11 @@ export function NotificationDrawer() {
         className="w-9 h-9 flex items-center justify-center rounded-lg bg-surface-container-high text-primary hover:bg-surface-container-highest transition relative"
       >
         <Bell className="w-5 h-5" />
-        {/* Unread badge */}
-        <span className="absolute -top-1 -right-1 w-5 h-5 bg-error text-on-error rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-surface shadow-sm">
-          5
-        </span>
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 w-5 h-5 bg-error text-on-error rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-surface shadow-sm">
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </span>
+        )}
       </button>
 
       {isOpen && (
@@ -39,118 +123,80 @@ export function NotificationDrawer() {
           <div className="p-3.5 border-b border-surface-variant bg-surface flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="font-headline font-semibold text-on-surface text-sm">Notifications</span>
-              <span className="bg-secondary-container text-on-secondary-container text-[11px] font-semibold px-2 py-0.5 rounded-full border border-primary-fixed">
-                5 unread
-              </span>
+              {unreadCount > 0 && (
+                <span className="bg-secondary-container text-on-secondary-container text-[11px] font-semibold px-2 py-0.5 rounded-full border border-primary-fixed">
+                  {unreadCount} unread
+                </span>
+              )}
             </div>
-            <button className="text-xs text-primary hover:text-primary-dim font-medium transition cursor-pointer" type="button">
-              Mark all read
-            </button>
+            {unreadCount > 0 && (
+              <button 
+                onClick={() => markAllAsReadMutation.mutate()}
+                disabled={markAllAsReadMutation.isPending}
+                className="text-xs text-primary hover:text-primary-dim font-medium transition cursor-pointer disabled:opacity-50" 
+                type="button"
+              >
+                {markAllAsReadMutation.isPending ? 'Marking...' : 'Mark all read'}
+              </button>
+            )}
           </div>
           
           <div className="px-3 pt-2 pb-1.5 bg-surface-container-low border-b border-surface-variant flex items-center gap-2">
-            <button className="px-2.5 py-1 text-xs font-semibold rounded-md bg-surface-container-lowest text-primary shadow-sm border border-outline-variant/40" type="button">
-              All (6)
+            <button 
+              onClick={() => setFilter('ALL')}
+              className={`px-2.5 py-1 text-xs font-semibold rounded-md shadow-sm border transition ${filter === 'ALL' ? 'bg-surface-container-lowest text-primary border-outline-variant/40' : 'text-on-surface-variant border-transparent hover:text-on-surface hover:bg-surface-container'}`} 
+              type="button"
+            >
+              All {filter === 'ALL' && `(${totalCount})`}
             </button>
-            <button className="px-2.5 py-1 text-xs font-medium rounded-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition" type="button">
-              Unread (5)
+            <button 
+              onClick={() => setFilter('UNREAD')}
+              className={`px-2.5 py-1 text-xs font-semibold rounded-md shadow-sm border transition ${filter === 'UNREAD' ? 'bg-surface-container-lowest text-primary border-outline-variant/40' : 'text-on-surface-variant border-transparent hover:text-on-surface hover:bg-surface-container'}`} 
+              type="button"
+            >
+              Unread {filter === 'UNREAD' && `(${totalCount})`}
             </button>
           </div>
           
           <div className="overflow-y-auto max-h-[420px] custom-scrollbar divide-y divide-surface-container">
-            {/* Item 1 */}
-            <div className="bg-surface-container-lowest border-l-[3px] border-primary p-3 hover:bg-surface-container-low transition cursor-pointer flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-secondary-container text-primary flex-shrink-0 mt-0.5">
-                <CheckSquare className="w-4 h-4" />
+            {isLoading ? (
+              <div className="p-8 text-center text-on-surface-variant text-sm">Loading notifications...</div>
+            ) : notifications.length === 0 ? (
+              <div className="p-8 text-center text-on-surface-variant text-sm flex flex-col items-center">
+                <Bell className="w-8 h-8 mb-2 opacity-20" />
+                <p>No notifications to display</p>
               </div>
-              <div className="flex-1 min-w-0 pr-1">
-                <p className="text-xs text-on-surface leading-snug font-normal">
-                  Change request <code className="font-mono text-[11px] bg-surface-container px-1 py-0.5 rounded text-on-surface font-semibold">CR-0045</code> submitted for review on <code className="font-mono text-[11px] bg-surface-container px-1 py-0.5 rounded text-on-surface font-semibold">PRC-0128</code>
-                </p>
-                <span className="text-[11px] text-on-surface-variant font-medium mt-1 block">2 hours ago</span>
-              </div>
-              <div className="flex-shrink-0 mt-1.5">
-                <div className="w-2 h-2 rounded-full bg-primary ring-2 ring-primary-container"></div>
-              </div>
-            </div>
-
-            {/* Item 2 */}
-            <div className="bg-surface-container-lowest border-l-[3px] border-secondary p-3 hover:bg-surface-container-low transition cursor-pointer flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-surface-container-highest text-secondary flex-shrink-0 mt-0.5">
-                <ArrowLeftRight className="w-4 h-4" />
-              </div>
-              <div className="flex-1 min-w-0 pr-1">
-                <p className="text-xs text-on-surface leading-snug font-normal">
-                  PM Handover request submitted for <code className="font-mono text-[11px] bg-surface-container px-1 py-0.5 rounded text-on-surface font-semibold">PRC-0089</code> (<span className="text-secondary font-medium">PM_LEFT_COMPANY</span> scenario)
-                </p>
-                <span className="text-[11px] text-on-surface-variant font-medium mt-1 block">5 hours ago</span>
-              </div>
-              <div className="flex-shrink-0 mt-1.5">
-                <div className="w-2 h-2 rounded-full bg-primary ring-2 ring-primary-container"></div>
-              </div>
-            </div>
-
-            {/* Item 3 */}
-            <div className="bg-surface-container-lowest border-l-[3px] border-amber-500 p-3 hover:bg-surface-container-low transition cursor-pointer flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-amber-50 text-amber-700 flex-shrink-0 mt-0.5">
-                <AlertTriangle className="w-4 h-4" />
-              </div>
-              <div className="flex-1 min-w-0 pr-1">
-                <p className="text-xs text-on-surface leading-snug font-normal">
-                  Employee <code className="font-mono text-[11px] bg-surface-container px-1 py-0.5 rounded text-on-surface font-semibold">E1004</code> deactivated with 3 active process assignments requiring handover
-                </p>
-                <span className="text-[11px] text-on-surface-variant font-medium mt-1 block">1 day ago</span>
-              </div>
-              <div className="flex-shrink-0 mt-1.5">
-                <div className="w-2 h-2 rounded-full bg-primary ring-2 ring-primary-container"></div>
-              </div>
-            </div>
-
-            {/* Item 4 */}
-            <div className="bg-surface-container-lowest border-l-[3px] border-emerald-500 p-3 hover:bg-surface-container-low transition cursor-pointer flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-emerald-50 text-emerald-700 flex-shrink-0 mt-0.5">
-                <CheckCircle className="w-4 h-4" />
-              </div>
-              <div className="flex-1 min-w-0 pr-1">
-                <p className="text-xs text-on-surface leading-snug font-normal">
-                  Import batch <code className="font-mono text-[11px] bg-surface-container px-1 py-0.5 rounded text-on-surface font-semibold">B-003</code> committed successfully: 258 processes created
-                </p>
-                <span className="text-[11px] text-on-surface-variant font-medium mt-1 block">1 day ago</span>
-              </div>
-              <div className="flex-shrink-0 mt-1.5">
-                <div className="w-2 h-2 rounded-full bg-primary ring-2 ring-primary-container"></div>
-              </div>
-            </div>
-
-            {/* Item 5 */}
-            <div className="bg-surface-container-lowest border-l-[3px] border-emerald-500 p-3 hover:bg-surface-container-low transition cursor-pointer flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-emerald-50 text-emerald-700 flex-shrink-0 mt-0.5">
-                <ShieldCheck className="w-4 h-4" />
-              </div>
-              <div className="flex-1 min-w-0 pr-1">
-                <p className="text-xs text-on-surface leading-snug font-normal">
-                  Role <code className="font-mono text-[11px] bg-surface-container px-1 py-0.5 rounded text-on-surface font-semibold">BPMS_ADMIN</code> assigned to Priya M (<code className="font-mono text-[11px] text-on-surface-variant">E1007</code>)
-                </p>
-                <span className="text-[11px] text-on-surface-variant font-medium mt-1 block">2 days ago</span>
-              </div>
-              <div className="flex-shrink-0 mt-1.5">
-                <div className="w-2 h-2 rounded-full bg-primary ring-2 ring-primary-container"></div>
-              </div>
-            </div>
-
-            {/* Item 6 (Read) */}
-            <div className="bg-surface-container-low/60 p-3 hover:bg-surface-container transition cursor-pointer flex items-start gap-3 opacity-80">
-              <div className="p-2 rounded-lg bg-surface-container-high text-on-surface-variant flex-shrink-0 mt-0.5">
-                <UserPlus className="w-4 h-4" />
-              </div>
-              <div className="flex-1 min-w-0 pr-1">
-                <p className="text-xs text-on-surface leading-snug font-normal">
-                  Employee <code className="font-mono text-[11px] bg-surface-container px-1 py-0.5 rounded text-on-surface font-semibold">E1008</code> (Amit R) created successfully
-                </p>
-                <span className="text-[11px] text-on-surface-variant font-medium mt-1 block">3 days ago</span>
-              </div>
-              <div className="flex-shrink-0 mt-1.5 w-2 h-2"></div>
-            </div>
+            ) : (
+              notifications.map((notif) => {
+                const styles = getColorClassesForType(notif.notification_type, notif.is_read);
+                return (
+                  <div 
+                    key={notif.notification_id}
+                    onClick={() => {
+                      if (!notif.is_read) markAsReadMutation.mutate(notif.notification_id);
+                    }}
+                    className={`${styles.bg} ${notif.is_read ? '' : `border-l-[3px] ${styles.border}`} p-3 ${styles.hover} transition cursor-pointer flex items-start gap-3 ${styles.opacity}`}
+                  >
+                    <div className={`p-2 rounded-lg ${styles.iconBg} flex-shrink-0 mt-0.5`}>
+                      {getIconForNotificationType(notif.notification_type)}
+                    </div>
+                    <div className="flex-1 min-w-0 pr-1">
+                      <p className="text-xs text-on-surface leading-snug font-normal whitespace-pre-wrap">
+                        {notif.message}
+                      </p>
+                      <span className="text-[11px] text-on-surface-variant font-medium mt-1 block">
+                        {formatRelativeTime(notif.created_at)}
+                      </span>
+                    </div>
+                    {!notif.is_read && (
+                      <div className="flex-shrink-0 mt-1.5">
+                        <div className="w-2 h-2 rounded-full bg-primary ring-2 ring-primary-container"></div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
           </div>
 
           <div className="border-t border-surface-variant bg-surface-container-low px-4 py-2.5 text-center">

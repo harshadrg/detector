@@ -42,7 +42,6 @@ export function ReviewQueue() {
   const changeRequests = reviews.filter(r => r.change_type !== 'PROCESS_DEACTIVATION');
   // const deactivationRequests = reviews.filter(r => r.change_type === 'PROCESS_DEACTIVATION');
 
-  // TODO: Phase 10 - Connect fully to backend API for review details and diff structures once implemented.
   const displayItems = changeRequests;
 
   const reviewMutation = useMutation({
@@ -67,24 +66,6 @@ export function ReviewQueue() {
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto py-6 px-8">
-      {/* Amber Integration Banner */}
-      <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 flex items-start gap-3.5 shadow-sm">
-        <div className="w-9 h-9 rounded-lg bg-amber-500/15 border border-amber-300 text-amber-900 flex items-center justify-center shrink-0 mt-0.5">
-          <Wrench className="w-5 h-5" />
-        </div>
-        <div className="flex-1 flex flex-col gap-1">
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <h2 className="font-headline font-bold text-sm tracking-tight text-amber-950">BACKEND API PENDING</h2>
-            <span className="bg-amber-200/70 border border-amber-300/80 text-amber-900 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-              STAGING PREVIEW • SPEC v4.2
-            </span>
-          </div>
-          <p className="text-xs text-amber-900/90 leading-relaxed font-body">
-            Backend API partially complete — Mock data provided for UI layout demonstration. 
-          </p>
-        </div>
-      </div>
-
       {/* Screen Header */}
       <section className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
