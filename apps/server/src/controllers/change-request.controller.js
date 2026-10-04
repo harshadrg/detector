@@ -1,5 +1,7 @@
 import { changeRequestService } from '../services/change-request.service.js';
 
+import { submitChangeRequestSchema } from '../schemas/change-request.schema.js';
+
 export async function submitChangeRequest(req, res) {
   try {
     const registryId = parseInt(req.params.id, 10);
@@ -11,24 +13,19 @@ export async function submitChangeRequest(req, res) {
       });
     }
 
-    const data = req.body;
-    if (!data.change_type || !data.proposed_data || !data.action) {
+    const parseResult = submitChangeRequestSchema.safeParse(req.body);
+    if (!parseResult.success) {
       return res.status(400).json({
         success: false,
         data: null,
-        error: { code: 'VALIDATION_ERROR', message: 'change_type, proposed_data, and action are required.', details: [] },
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid change request payload.',
+          details: parseResult.error.errors.map((e) => e.message),
+        },
       });
     }
-
-    if (data.change_type === 'PROCESS_DEACTIVATION') {
-      if (!data.proposed_data.ended_on || !data.proposed_data.closure_remarks) {
-        return res.status(400).json({
-          success: false,
-          data: null,
-          error: { code: 'VALIDATION_ERROR', message: 'ended_on and closure_remarks are required for PROCESS_DEACTIVATION.', details: [] },
-        });
-      }
-    }
+    const data = parseResult.data;
 
     const actingContext = req.header('X-UI-Context-Role') || null;
     const result = await changeRequestService.submitChangeRequest(req.user, registryId, data, actingContext);
@@ -113,3 +110,4 @@ export async function listPendingReviews(req, res) {
     });
   }
 }
+

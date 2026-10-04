@@ -1,5 +1,7 @@
 import { handoverService } from '../services/handover.service.js';
 
+import { requestHandoverSchema, reviewHandoverSchema } from '../schemas/handover.schema.js';
+
 export async function requestHandover(req, res) {
   try {
     const registryId = parseInt(req.params.id, 10);
@@ -11,14 +13,19 @@ export async function requestHandover(req, res) {
       });
     }
 
-    const data = req.body;
-    if (!data.to_pm_ecode || !data.scenario || !data.effective_date || !data.reason) {
+    const parseResult = requestHandoverSchema.safeParse(req.body);
+    if (!parseResult.success) {
       return res.status(400).json({
         success: false,
         data: null,
-        error: { code: 'VALIDATION_ERROR', message: 'to_pm_ecode, scenario, effective_date, and reason are required.', details: [] },
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid handover request payload.',
+          details: parseResult.error.errors.map((e) => e.message),
+        },
       });
     }
+    const data = parseResult.data;
 
     const actingContext = req.header('X-UI-Context-Role') || null;
     const result = await handoverService.requestHandover(req.user, registryId, data, actingContext);
@@ -52,14 +59,19 @@ export async function reviewHandover(req, res) {
       });
     }
 
-    const data = req.body;
-    if (!data.action || !['APPROVE', 'REJECT'].includes(data.action)) {
+    const parseResult = reviewHandoverSchema.safeParse(req.body);
+    if (!parseResult.success) {
       return res.status(400).json({
         success: false,
         data: null,
-        error: { code: 'VALIDATION_ERROR', message: 'action must be APPROVE or REJECT.', details: [] },
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid handover review payload.',
+          details: parseResult.error.errors.map((e) => e.message),
+        },
       });
     }
+    const data = parseResult.data;
 
     const actingContext = req.header('X-UI-Context-Role') || null;
     const result = await handoverService.reviewHandover(req.user, handoverId, data, actingContext);
@@ -103,3 +115,4 @@ export async function listPendingHandovers(req, res) {
     });
   }
 }
+

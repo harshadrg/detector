@@ -41,10 +41,23 @@ export async function stageExcelUpload(req, res) {
   }
 }
 
+import { listBatchesQuerySchema, getStagedRowsQuerySchema } from '../schemas/import.schema.js';
+
 export async function listBatches(req, res) {
   try {
-    const page = parseInt(req.query.page, 10) || 1;
-    const pageSize = parseInt(req.query.pageSize, 10) || 10;
+    const parseResult = listBatchesQuerySchema.safeParse(req.query);
+    if (!parseResult.success) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid query parameters.',
+          details: parseResult.error.errors.map((e) => e.message),
+        },
+      });
+    }
+    const { page, pageSize } = parseResult.data;
 
     const data = await importService.listBatches({ page, pageSize });
 
@@ -128,9 +141,19 @@ export async function getStagedRows(req, res) {
       });
     }
 
-    const page = parseInt(req.query.page, 10) || 1;
-    const pageSize = parseInt(req.query.pageSize, 10) || 20;
-    const filter = (req.query.filter || 'ALL').toUpperCase();
+    const parseResult = getStagedRowsQuerySchema.safeParse(req.query);
+    if (!parseResult.success) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid query parameters.',
+          details: parseResult.error.errors.map((e) => e.message),
+        },
+      });
+    }
+    const { page, pageSize, filter } = parseResult.data;
 
     const data = await importService.getStagedRows(batchId, { page, pageSize, filter });
 
@@ -190,3 +213,4 @@ export async function commitBatch(req, res) {
     });
   }
 }
+

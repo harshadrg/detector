@@ -1,16 +1,23 @@
 import { processService } from '../services/process.service.js';
 
+import { listProcessesQuerySchema, createProcessSchema } from '../schemas/process.schema.js';
+
 export async function listProcesses(req, res) {
   try {
-    const page = parseInt(req.query.page, 10) || 1;
-    const pageSize = Math.min(parseInt(req.query.pageSize, 10) || 20, 100);
-    const search = req.query.search || '';
-    const vertical_id = req.query.vertical_id || null;
-    const sbu_id = req.query.sbu_id || null;
-    const status = req.query.status || 'ALL';
-    const client_type = req.query.client_type || null;
-    const sortField = req.query.sortField || 'process_code';
-    const sortDirection = req.query.sortDirection || 'ASC';
+    const parseResult = listProcessesQuerySchema.safeParse(req.query);
+    if (!parseResult.success) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid query parameters.',
+          details: parseResult.error.errors.map((e) => e.message),
+        },
+      });
+    }
+
+    const { page, pageSize, search, vertical_id, sbu_id, status, client_type, sortField, sortDirection } = parseResult.data;
 
     const result = await processService.listProcesses(req.user, {
       page,
@@ -91,6 +98,19 @@ export async function getProcessById(req, res) {
 
 export async function createProcess(req, res) {
   try {
+    const parseResult = createProcessSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid process creation payload.',
+          details: parseResult.error.errors.map((e) => e.message),
+        },
+      });
+    }
+
     const {
       vertical_id,
       sbu_id,
@@ -108,19 +128,7 @@ export async function createProcess(req, res) {
       sbu_head_ecode,
       account_head_ecode,
       pm_ecode,
-    } = req.body;
-
-    if (!vertical_id) {
-      return res.status(400).json({
-        success: false,
-        data: null,
-        error: {
-          code: 'VERTICAL_REQUIRED',
-          message: 'Vertical ID is required to register a process.',
-          details: [],
-        },
-      });
-    }
+    } = parseResult.data;
 
     const actingContext = req.user.acting_context || null;
 
@@ -213,3 +221,5 @@ export async function getOwnershipHistory(req, res) {
     });
   }
 }
+
+

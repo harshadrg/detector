@@ -43,7 +43,7 @@ The following phases must be executed sequentially. **Do not proceed to the next
   - Move `SELECT TOP 1 process_code` logic inside the transactional boundaries in `createProcess` and `commitBatch`.
 * **Verification:** Deliberate failures mid-flight correctly rollback all table modifications.
 
-### Phase 3: Zod Schema Enforcement
+### [x] Phase 3: Zod Schema Enforcement
 * **Objective:** Apply strict validation to all BPMS endpoints to match Core platform standards.
 * **Tasks:**
   - Define missing schemas in `src/schemas/`: `process.schema.js`, `change-request.schema.js`, `handover.schema.js`, `import.schema.js`.
