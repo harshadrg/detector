@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getAuditEvents } from '../controllers/audit.controller.js';
+import { getAuditEvents, exportAuditEvents } from '../controllers/audit.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 import {
   contextSwitchMiddleware,
@@ -15,6 +15,15 @@ router.get(
   contextSwitchMiddleware,
   requireAnyPermission(['CORE.AUDIT.VIEW_GLOBAL', 'BPMS.AUDIT.VIEW']),
   getAuditEvents
+);
+
+// Export Platform Immutable Audit Ledger
+router.get(
+  '/export',
+  authenticate,
+  contextSwitchMiddleware,
+  requireAnyPermission(['CORE.AUDIT.VIEW_GLOBAL', 'BPMS.AUDIT.VIEW']),
+  exportAuditEvents
 );
 
 export default router;

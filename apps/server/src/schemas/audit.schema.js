@@ -10,4 +10,10 @@ export const queryAuditSchema = z.object({
   performed_by: z.string().trim().optional(),
   acting_context: z.string().trim().optional(),
   search: z.string().trim().optional(),
+  startDate: z.string().trim().optional(),
+  endDate: z.string().trim().optional(),
+});
+
+export const exportAuditSchema = queryAuditSchema.extend({
+  format: z.enum(['csv', 'xlsx', 'pdf']),
 });

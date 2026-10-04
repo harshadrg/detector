@@ -5,17 +5,12 @@ import {
   PauseCircle, 
   RefreshCw, 
   Download, 
-  Calendar, 
-  X, 
   Filter,
   BarChart2,
   ChevronDown,
-  ChevronUp,
   FileDiff,
   ShieldCheck,
-  Network,
-  Key,
-  Shield
+  Network
 } from 'lucide-react';
 
 export function AuditLedger() {
@@ -28,8 +23,11 @@ export function AuditLedger() {
     module_code: 'ALL',
     entity_type: 'ALL',
     action: 'ALL',
+    startDate: '',
+    endDate: '',
   });
   const [appliedFilters, setAppliedFilters] = useState(filters);
+  const [exportOpen, setExportOpen] = useState(false);
 
   const toggleRow = (id) => {
     setExpandedRow(expandedRow === id ? null : id);
@@ -45,10 +43,31 @@ export function AuditLedger() {
   };
 
   const resetFilters = () => {
-    const defaultFilters = { module_code: 'ALL', entity_type: 'ALL', action: 'ALL' };
+    const defaultFilters = { module_code: 'ALL', entity_type: 'ALL', action: 'ALL', startDate: '', endDate: '' };
     setFilters(defaultFilters);
     setAppliedFilters(defaultFilters);
     setPage(1);
+  };
+
+  const handleExport = (format) => {
+    setExportOpen(false);
+    
+    // Construct export URL
+    const params = new URLSearchParams({ format });
+    if (appliedFilters.module_code !== 'ALL') params.append('module_code', appliedFilters.module_code);
+    if (appliedFilters.entity_type !== 'ALL') params.append('entity_type', appliedFilters.entity_type);
+    if (appliedFilters.action !== 'ALL') params.append('action', appliedFilters.action);
+    if (appliedFilters.startDate) params.append('startDate', appliedFilters.startDate);
+    if (appliedFilters.endDate) params.append('endDate', appliedFilters.endDate);
+    
+    const url = `/api/core/audit/export?${params.toString()}`;
+    
+    // Trigger download
+    const link = document.createElement('a');
+    link.href = url;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const { data, isLoading, refetch } = useQuery({
@@ -100,10 +119,6 @@ export function AuditLedger() {
           </button>
           <button onClick={() => refetch()} className="p-1.5 text-on-surface-variant hover:text-on-surface bg-surface-container hover:bg-surface-container-high rounded-lg border border-outline-variant transition-colors" title="Force Refresh">
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-          </button>
-          <button className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold text-on-primary bg-primary hover:bg-primary-dim rounded-lg shadow-sm transition-colors">
-            <Download className="w-4 h-4" />
-            <span>Export Audit Log (.csv)</span>
           </button>
         </div>
       </div>
@@ -169,15 +184,26 @@ export function AuditLedger() {
               <ChevronDown className="w-3 h-3 absolute right-3 top-2.5 text-on-surface-variant pointer-events-none" />
             </div>
           </div>
-          {/* Date Range Picker - Static for now */}
-          <div className="space-y-1 lg:col-span-2 opacity-50 pointer-events-none">
+          {/* Functional Date Range Picker */}
+          <div className="space-y-1 lg:col-span-2">
             <label className="block text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant font-label">Date Range</label>
-            <div className="flex items-center bg-surface-container-low border border-outline-variant rounded-lg px-2.5 py-1.5 text-xs text-on-surface focus-within:ring-1 focus-within:ring-primary focus-within:border-primary">
-              <Calendar className="w-3.5 h-3.5 text-on-surface-variant mr-2" />
-              <span className="font-mono text-xs text-on-surface font-medium">All Time</span>
+            <div className="flex items-center gap-2">
+              <input 
+                type="date"
+                value={filters.startDate}
+                onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-2 py-1.5 text-xs text-on-surface focus:ring-1 focus:ring-primary focus:border-primary"
+              />
+              <span className="text-on-surface-variant text-xs">to</span>
+              <input 
+                type="date"
+                value={filters.endDate}
+                onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-2 py-1.5 text-xs text-on-surface focus:ring-1 focus:ring-primary focus:border-primary"
+              />
             </div>
           </div>
-          {/* Filter Buttons */}
+          {/* Filter Buttons & Export Dropdown */}
           <div className="flex items-end gap-2">
             <button 
               onClick={applyFilters}
@@ -192,6 +218,25 @@ export function AuditLedger() {
             >
               Reset
             </button>
+            
+            {/* Export Dropdown */}
+            <div className="relative">
+              <button 
+                onClick={() => setExportOpen(!exportOpen)}
+                className="bg-surface-container-highest text-on-surface hover:bg-surface-container-high text-xs font-semibold py-2 px-3 rounded-lg flex items-center justify-center gap-1 shadow-sm transition-colors border border-outline-variant"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Export</span>
+                <ChevronDown className="w-3 h-3 ml-1" />
+              </button>
+              {exportOpen && (
+                <div className="absolute right-0 mt-1 w-32 bg-surface rounded-lg shadow-lg border border-outline-variant py-1 z-10">
+                  <button onClick={() => handleExport('csv')} className="w-full text-left px-3 py-1.5 text-xs hover:bg-surface-container text-on-surface">As CSV</button>
+                  <button onClick={() => handleExport('xlsx')} className="w-full text-left px-3 py-1.5 text-xs hover:bg-surface-container text-on-surface">As Excel</button>
+                  <button onClick={() => handleExport('pdf')} className="w-full text-left px-3 py-1.5 text-xs hover:bg-surface-container text-on-surface">As PDF</button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         {/* Filter Meta bar */}

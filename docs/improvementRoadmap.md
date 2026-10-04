@@ -26,7 +26,7 @@ This document outlines the verified, implementation-ready improvement plan for t
 ---
 
 ## Phase 2: Audit Ledger Logging Gaps & Export Engine
-**Status:** [ ] Pending
+**Status:** [x] Completed
 
 * **Objective:** Ensure all critical application lifecycle events are captured in the immutable ledger and build the missing backend export capabilities.
 * **Current Behavior:** `auth.controller.js` does not log `LOGIN` events. `employee.controller.js` does not log Employee Creation, Update, or Deactivation. The backend lacks any export endpoints for audit logs, while the frontend displays a non-functional static `.csv` export button.
@@ -34,11 +34,11 @@ This document outlines the verified, implementation-ready improvement plan for t
 * **Dependencies:** None.
 * **Security & Validation:** Audit routes remain guarded by `CORE.AUDIT.VIEW_GLOBAL` and `BPMS.AUDIT.VIEW`.
 * **Step-by-Step Actions:**
-  - [ ] **Step 1:** Inject `auditService.logEvent` into `auth.controller.js` (for `LOGIN`) and `employee.controller.js` (for `CREATE`, `UPDATE`, `DEACTIVATE`).
-  - [ ] **Step 2:** Create a new `GET /api/core/audit/export` endpoint in `audit.routes.js` that accepts the exact same filter schema as the list endpoint.
-  - [ ] **Step 3:** Implement backend service logic to stream the filtered output into CSV, Excel (`write-excel-file`), and PDF formats.
-  - [ ] **Step 4:** In `AuditLedger.jsx`, remove the static export button from the header. Add an export dropdown next to the "Apply Filters" button, wired to the new backend endpoint.
-  - [ ] **Step 5:** Replace the static "Date Range" HTML with a functional date picker and map `startDate`/`endDate` to the backend filter.
+  - [x] **Step 1:** Inject `auditService.logEvent` into `auth.controller.js` (for `LOGIN`) and `employee.controller.js` (for `CREATE`, `UPDATE`, `DEACTIVATE`).
+  - [x] **Step 2:** Create a new `GET /api/core/audit/export` endpoint in `audit.routes.js` that accepts the exact same filter schema as the list endpoint.
+  - [x] **Step 3:** Implement backend service logic to stream the filtered output into CSV, Excel (`write-excel-file`), and PDF formats.
+  - [x] **Step 4:** In `AuditLedger.jsx`, remove the static export button from the header. Add an export dropdown next to the "Apply Filters" button, wired to the new backend endpoint.
+  - [x] **Step 5:** Replace the static "Date Range" HTML with a functional date picker and map `startDate`/`endDate` to the backend filter.
 * **Verification Criteria:** Deactivating an employee and logging in should produce visible records in the Audit Ledger. Exporting the ledger should download a valid file matching the current on-screen filters.
 
 ---

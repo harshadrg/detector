@@ -126,6 +126,8 @@ export class AuditService {
    * @param {string|null} [options.performed_by=null]
    * @param {string|null} [options.acting_context=null]
    * @param {string|null} [options.search=null]
+   * @param {string|null} [options.startDate=null]
+   * @param {string|null} [options.endDate=null]
    * @param {string[]|null} [options.allowedModules=null] - Enforced by ABAC/RBAC
    * @returns {Promise<{ events: any[], meta: { page: number, pageSize: number, totalCount: number, totalPages: number } }>}
    */
@@ -139,6 +141,8 @@ export class AuditService {
     performed_by = null,
     acting_context = null,
     search = null,
+    startDate = null,
+    endDate = null,
     allowedModules = null,
   } = {}) {
     const offset = (page - 1) * pageSize;
@@ -175,7 +179,7 @@ export class AuditService {
       params.entity_id = { type: sql.VarChar(50), value: entity_id };
     }
 
-    if (action) {
+    if (action && action !== 'ALL') {
       whereClauses.push('a.action = @action');
       params.action = { type: sql.VarChar(100), value: action };
     }
@@ -188,6 +192,19 @@ export class AuditService {
     if (acting_context) {
       whereClauses.push('a.acting_context = @acting_context');
       params.acting_context = { type: sql.VarChar(50), value: acting_context };
+    }
+
+    if (startDate) {
+      whereClauses.push('a.created_at >= @startDate');
+      params.startDate = { type: sql.DateTime, value: new Date(startDate) };
+    }
+
+    if (endDate) {
+      // Add 1 day to include the entire end date
+      const end = new Date(endDate);
+      end.setDate(end.getDate() + 1);
+      whereClauses.push('a.created_at < @endDate');
+      params.endDate = { type: sql.DateTime, value: end };
     }
 
     if (search && search.trim().length > 0) {

@@ -3,6 +3,7 @@ import { verifyPassword, generateRandomToken } from '../utils/crypto.js';
 import { generateAccessToken, cookieConfig } from '../utils/token.js';
 import { loginSchema } from '../schemas/auth.schema.js';
 import { authorizationService } from '../services/authorization.service.js';
+import { auditService } from '../services/audit.service.js';
 
 export async function login(req, res) {
   try {
@@ -115,6 +116,16 @@ export async function login(req, res) {
     // Set secure cookies
     res.cookie('access_token', accessToken, cookieConfig.accessToken);
     res.cookie('csrf_token', csrfToken, cookieConfig.csrfToken);
+
+    await auditService.logEvent({
+      module_code: 'CORE',
+      entity_type: 'SYSTEM_AUTH',
+      entity_id: employee.ecode,
+      action: 'LOGIN',
+      performed_by: employee.ecode,
+      acting_context: 'SELF',
+      remarks: 'User authenticated successfully.',
+    });
 
     return res.status(200).json({
       success: true,

@@ -274,25 +274,25 @@ export async function createEmployee(req, res) {
            VALUES (@ecode, @role_id, @assigned_by)`
         );
       }
-    });
-
-    // Emit Audit Event & Dispatch Welcome Notification
-    await auditService.log({
-      module_code: 'CORE',
-      entity_type: 'EMPLOYEE',
-      entity_id: ecode,
-      action: 'CREATE_EMPLOYEE',
-      performed_by: req.user.ecode,
-      acting_context: req.actingContext || null,
-      previous_data: null,
-      updated_data: {
-        ecode,
-        name,
-        email,
-        status: 'ACTIVE',
-        roles: validatedRoles.map((r) => r.role_code),
-      },
-      remarks: `Created employee profile for ${name} (${ecode}).`,
+      
+      // Emit Audit Event inside transaction
+      await auditService.logEvent({
+        module_code: 'CORE',
+        entity_type: 'EMPLOYEE',
+        entity_id: ecode,
+        action: 'CREATE_EMPLOYEE',
+        performed_by: req.user.ecode,
+        acting_context: req.actingContext || null,
+        previous_data: null,
+        updated_data: {
+          ecode,
+          name,
+          email,
+          status: 'ACTIVE',
+          roles: validatedRoles.map((r) => r.role_code),
+        },
+        remarks: `Created employee profile for ${name} (${ecode}).`,
+      }, transaction);
     });
 
     await notificationService.dispatch({
@@ -427,22 +427,21 @@ export async function updateEmployeeStatus(req, res) {
            WHERE ecode = @ecode`
         );
       }
-    });
-
-    // Emit Audit Event & Dispatch Status Notification
-    await auditService.log({
-      module_code: 'CORE',
-      entity_type: 'EMPLOYEE',
-      entity_id: ecode,
-      action: 'UPDATE_EMPLOYEE_STATUS',
-      performed_by: req.user.ecode,
-      acting_context: req.actingContext || null,
-      previous_data: { status: employee.status },
-      updated_data: { status },
-      remarks:
-        status === 'INACTIVE'
-          ? `Employee account deactivated. Active process assignments count: ${activeAssignments.length}.`
-          : 'Employee account reactivated.',
+      // Emit Audit Event inside transaction
+      await auditService.logEvent({
+        module_code: 'CORE',
+        entity_type: 'EMPLOYEE',
+        entity_id: ecode,
+        action: 'UPDATE_EMPLOYEE_STATUS',
+        performed_by: req.user.ecode,
+        acting_context: req.actingContext || null,
+        previous_data: { status: employee.status },
+        updated_data: { status },
+        remarks:
+          status === 'INACTIVE'
+            ? `Employee account deactivated. Active process assignments count: ${activeAssignments.length}.`
+            : 'Employee account reactivated.',
+      }, transaction);
     });
 
     if (status === 'INACTIVE' && activeAssignments.length > 0) {
