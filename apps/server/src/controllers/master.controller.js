@@ -64,6 +64,28 @@ export async function listVerticals(req, res) {
   }
 }
 
+export async function listVerticalEmployees(req, res) {
+  try {
+    const { id } = req.params;
+    const employees = await masterService.getVerticalEmployees(id);
+    return res.status(200).json({
+      success: true,
+      data: { employees },
+      error: null,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      data: null,
+      error: {
+        code: 'FETCH_VERTICAL_EMPLOYEES_FAILED',
+        message: 'Failed to retrieve vertical employees.',
+        details: [err.message],
+      },
+    });
+  }
+}
+
 export async function createVertical(req, res) {
   try {
     const parseResult = createVerticalSchema.safeParse(req.body);
@@ -140,6 +162,27 @@ export async function updateVertical(req, res) {
           details: [],
         },
       });
+    }
+
+    if (parseResult.data.is_active === false && existing.is_active === true) {
+      const activeProcesses = await query(
+        `SELECT COUNT(*) as count 
+         FROM dbo.Process_Registry pr
+         JOIN dbo.SBUs s ON s.sbu_id = pr.sbu_id
+         WHERE s.vertical_id = @id AND pr.status IN ('ACTIVE', 'TRANSITION')`,
+        { id: { type: sql.Int, value: id } }
+      );
+      if (activeProcesses.recordset[0].count > 0) {
+        return res.status(409).json({
+          success: false,
+          data: null,
+          error: {
+            code: 'ACTIVE_PROCESSES_EXIST',
+            message: `Cannot deactivate Vertical. There are ${activeProcesses.recordset[0].count} active or transitioning processes tied to this vertical.`,
+            details: [],
+          },
+        });
+      }
     }
 
     const updated = await masterService.updateVertical(id, parseResult.data);
@@ -443,6 +486,25 @@ export async function updateClient(req, res) {
       });
     }
 
+    // Phase 3: Safe Client Deactivation Check
+    if (parseResult.data.is_active === false && existing.is_active === true) {
+      const activeProcesses = await query(
+        `SELECT COUNT(*) as count FROM dbo.Process_Registry WHERE client_id = @id AND status IN ('ACTIVE', 'TRANSITION')`,
+        { id: { type: sql.Int, value: id } }
+      );
+      if (activeProcesses.recordset[0].count > 0) {
+        return res.status(409).json({
+          success: false,
+          data: null,
+          error: {
+            code: 'ACTIVE_PROCESSES_EXIST',
+            message: `Cannot deactivate Client. There are ${activeProcesses.recordset[0].count} active or transitioning processes tied to this client.`,
+            details: [],
+          },
+        });
+      }
+    }
+
     const updated = await masterService.updateClient(id, parseResult.data);
 
     // Audit Event
@@ -582,6 +644,25 @@ export async function updateLocation(req, res) {
           details: [],
         },
       });
+    }
+
+    // Phase 3: Safe Location Deactivation Check
+    if (parseResult.data.is_active === false && existing.is_active === true) {
+      const activeProcesses = await query(
+        `SELECT COUNT(*) as count FROM dbo.Process_Registry WHERE location_id = @id AND status IN ('ACTIVE', 'TRANSITION')`,
+        { id: { type: sql.Int, value: id } }
+      );
+      if (activeProcesses.recordset[0].count > 0) {
+        return res.status(409).json({
+          success: false,
+          data: null,
+          error: {
+            code: 'ACTIVE_PROCESSES_EXIST',
+            message: `Cannot deactivate Location. There are ${activeProcesses.recordset[0].count} active or transitioning processes tied to this location.`,
+            details: [],
+          },
+        });
+      }
     }
 
     const updated = await masterService.updateLocation(id, parseResult.data);

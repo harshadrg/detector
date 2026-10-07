@@ -1,9 +1,8 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { masterApi } from '../../lib/api';
 import { 
   Building2, 
-  Building, 
   Users, 
   MapPin, 
   Search, 
@@ -13,7 +12,9 @@ import {
   Info,
   Network,
   ShieldCheck,
-  FileSignature
+  FileSignature,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 
 import { MasterEntityModal } from './MasterEntityModal';
@@ -22,7 +23,18 @@ export function MasterData() {
   const [activeTab, setActiveTab] = useState('VERTICALS');
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState('VERTICALS');
   const [selectedEntity, setSelectedEntity] = useState(null);
+  const [expandedVerticals, setExpandedVerticals] = useState(new Set());
+
+  const toggleVertical = (id) => {
+    setExpandedVerticals(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const { data: verticalsData, isLoading: isLoadingVerticals } = useQuery({
     queryKey: ['master-verticals', search],
@@ -85,17 +97,7 @@ export function MasterData() {
               <span>Verticals</span>
               <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === 'VERTICALS' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant font-medium'}`}>{verticals.length}</span>
             </button>
-            {/* Tab 2: SBUs */}
-            <button 
-              onClick={() => setActiveTab('SBUS')}
-              className={`inline-flex items-center gap-2 px-4 py-3 border-b-2 font-headline text-sm whitespace-nowrap rounded-t-lg transition-colors ${activeTab === 'SBUS' ? 'border-primary text-primary font-semibold bg-primary-container/10' : 'border-transparent text-on-surface-variant hover:text-on-surface hover:border-outline-variant/60 font-medium'}`}
-              type="button"
-            >
-              <Building className="w-5 h-5" />
-              <span>SBUs</span>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === 'SBUS' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant font-medium'}`}>{sbus.length}</span>
-            </button>
-            {/* Tab 3: Clients */}
+            {/* Tab 2: Clients */}
             <button 
               onClick={() => setActiveTab('CLIENTS')}
               className={`inline-flex items-center gap-2 px-4 py-3 border-b-2 font-headline text-sm whitespace-nowrap rounded-t-lg transition-colors ${activeTab === 'CLIENTS' ? 'border-primary text-primary font-semibold bg-primary-container/10' : 'border-transparent text-on-surface-variant hover:text-on-surface hover:border-outline-variant/60 font-medium'}`}
@@ -138,7 +140,11 @@ export function MasterData() {
               <span>Filters</span>
             </button>
             <button 
-              onClick={() => { setSelectedEntity(null); setIsModalOpen(true); }}
+              onClick={() => { 
+                setSelectedEntity(null); 
+                setModalType(activeTab);
+                setIsModalOpen(true); 
+              }}
               className="bg-primary hover:bg-primary-dim text-on-primary font-medium px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all duration-150 active:scale-95 text-sm" 
               type="button"
             >
@@ -162,15 +168,7 @@ export function MasterData() {
                       <th className="py-3 px-5 w-44 text-right" scope="col">Actions</th>
                     </>
                   )}
-                  {activeTab === 'SBUS' && (
-                    <>
-                      <th className="py-3 px-5 w-48" scope="col">Code</th>
-                      <th className="py-3 px-5" scope="col">Name</th>
-                      <th className="py-3 px-5" scope="col">Vertical</th>
-                      <th className="py-3 px-5 w-36" scope="col">Status</th>
-                      <th className="py-3 px-5 w-44 text-right" scope="col">Actions</th>
-                    </>
-                  )}
+
                   {activeTab === 'CLIENTS' && (
                     <>
                       <th className="py-3 px-5 w-48" scope="col">Client ID</th>
@@ -205,66 +203,129 @@ export function MasterData() {
                     </td>
                   </tr>
                 ) : (
-                  currentData.map((item) => (
-                    <tr key={item.id || item.vertical_id || item.sbu_id || item.client_id || item.location_id} className="hover:bg-surface-container/30 transition-colors">
-                      {activeTab === 'VERTICALS' && (
-                        <>
-                          <td className="py-3 px-5 font-mono text-primary font-medium">{item.vertical_code}</td>
-                          <td className="py-3 px-5 text-on-surface">{item.vertical_name}</td>
-                          <td className="py-3 px-5">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase border ${item.is_active ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-slate-600 bg-slate-50 border-slate-200'}`}>
-                              {item.is_active ? 'Active' : 'Inactive'}
-                            </span>
-                          </td>
-                        </>
-                      )}
-                      {activeTab === 'SBUS' && (
-                        <>
-                          <td className="py-3 px-5 font-mono text-primary font-medium">{item.sbu_code}</td>
-                          <td className="py-3 px-5 text-on-surface">{item.sbu_name}</td>
-                          <td className="py-3 px-5 text-on-surface">{item.vertical_name || item.vertical_code}</td>
-                          <td className="py-3 px-5">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase border ${item.is_active ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-slate-600 bg-slate-50 border-slate-200'}`}>
-                              {item.is_active ? 'Active' : 'Inactive'}
-                            </span>
-                          </td>
-                        </>
-                      )}
-                      {activeTab === 'CLIENTS' && (
-                        <>
-                          <td className="py-3 px-5 font-mono text-primary font-medium">{item.client_id}</td>
-                          <td className="py-3 px-5 text-on-surface">{item.client_name}</td>
-                          <td className="py-3 px-5 text-on-surface">{item.client_type}</td>
-                          <td className="py-3 px-5">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase border ${item.is_active ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-slate-600 bg-slate-50 border-slate-200'}`}>
-                              {item.is_active ? 'Active' : 'Inactive'}
-                            </span>
-                          </td>
-                        </>
-                      )}
-                      {activeTab === 'LOCATIONS' && (
-                        <>
-                          <td className="py-3 px-5 font-mono text-primary font-medium">{item.location_id}</td>
-                          <td className="py-3 px-5 text-on-surface">{item.city}</td>
-                          <td className="py-3 px-5 text-on-surface">{item.state}</td>
-                          <td className="py-3 px-5">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase border ${item.is_active ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-slate-600 bg-slate-50 border-slate-200'}`}>
-                              {item.is_active ? 'Active' : 'Inactive'}
-                            </span>
-                          </td>
-                        </>
-                      )}
-                      <td className="py-3 px-5 text-right">
-                        <button 
-                          onClick={() => { setSelectedEntity(item); setIsModalOpen(true); }}
-                          className="text-on-surface-variant hover:text-primary transition-colors p-1" 
-                          title="Edit"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+                  currentData.map((item) => {
+                    const isExpanded = expandedVerticals.has(item.vertical_id);
+                    const verticalSbus = sbus.filter(sbu => sbu.vertical_id === item.vertical_id);
+
+                    if (activeTab === 'VERTICALS') {
+                      return (
+                        <React.Fragment key={item.vertical_id}>
+                          <tr className="hover:bg-surface-container/30 transition-colors cursor-pointer" onClick={() => toggleVertical(item.vertical_id)}>
+                            <td className="py-3 px-5 font-mono text-primary font-medium flex items-center gap-2">
+                              {isExpanded ? <ChevronDown className="w-4 h-4 text-outline" /> : <ChevronRight className="w-4 h-4 text-outline" />}
+                              {item.vertical_code}
+                            </td>
+                            <td className="py-3 px-5 text-on-surface">{item.vertical_name}</td>
+                            <td className="py-3 px-5">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase border ${item.is_active ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-slate-600 bg-slate-50 border-slate-200'}`}>
+                                {item.is_active ? 'Active' : 'Inactive'}
+                              </span>
+                            </td>
+                            <td className="py-3 px-5 text-right">
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setSelectedEntity(item); setModalType('VERTICALS'); setIsModalOpen(true); }}
+                                className="text-on-surface-variant hover:text-primary transition-colors p-1" 
+                                title="Edit Vertical"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                            </td>
+                          </tr>
+                          {isExpanded && (
+                            <tr className="bg-surface-container-lowest border-b border-outline-variant/20">
+                              <td colSpan="4" className="p-0">
+                                <div className="px-10 py-4 bg-surface-container-low/30 inner-shadow-sm">
+                                  <div className="flex items-center justify-between mb-3">
+                                    <h4 className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Strategic Business Units (SBUs)</h4>
+                                    <button 
+                                      onClick={() => { setSelectedEntity(null); setModalType('SBUS'); setIsModalOpen(true); }}
+                                      className="text-xs font-medium text-primary hover:text-primary-dim flex items-center gap-1 bg-primary/10 hover:bg-primary/20 px-2 py-1 rounded"
+                                    >
+                                      <Plus className="w-3.5 h-3.5" />
+                                      Add SBU
+                                    </button>
+                                  </div>
+                                  {verticalSbus.length === 0 ? (
+                                    <p className="text-xs text-outline italic py-2">No SBUs configured for this vertical.</p>
+                                  ) : (
+                                    <table className="w-full text-left text-sm border border-outline-variant/30 rounded overflow-hidden">
+                                      <thead className="bg-surface-container">
+                                        <tr>
+                                          <th className="py-2 px-4 w-32 font-medium text-on-surface-variant">Code</th>
+                                          <th className="py-2 px-4 font-medium text-on-surface-variant">Name</th>
+                                          <th className="py-2 px-4 w-24 font-medium text-on-surface-variant">Status</th>
+                                          <th className="py-2 px-4 w-20 text-right font-medium text-on-surface-variant">Actions</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody className="divide-y divide-outline-variant/20 bg-surface">
+                                        {verticalSbus.map(sbu => (
+                                          <tr key={sbu.sbu_id} className="hover:bg-surface-container-lowest transition-colors">
+                                            <td className="py-2 px-4 font-mono text-primary/80">{sbu.sbu_code}</td>
+                                            <td className="py-2 px-4 text-on-surface">{sbu.sbu_name}</td>
+                                            <td className="py-2 px-4">
+                                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wide uppercase border ${sbu.is_active ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-slate-600 bg-slate-50 border-slate-200'}`}>
+                                                {sbu.is_active ? 'Active' : 'Inactive'}
+                                              </span>
+                                            </td>
+                                            <td className="py-2 px-4 text-right">
+                                              <button 
+                                                onClick={() => { setSelectedEntity(sbu); setModalType('SBUS'); setIsModalOpen(true); }}
+                                                className="text-outline hover:text-primary transition-colors p-1"
+                                              >
+                                                <Edit2 className="w-3.5 h-3.5" />
+                                              </button>
+                                            </td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      );
+                    }
+
+                    return (
+                      <tr key={item.client_id || item.location_id} className="hover:bg-surface-container/30 transition-colors">
+                        {activeTab === 'CLIENTS' && (
+                          <>
+                            <td className="py-3 px-5 font-mono text-primary font-medium">{item.client_id}</td>
+                            <td className="py-3 px-5 text-on-surface">{item.client_name}</td>
+                            <td className="py-3 px-5 text-on-surface">{item.client_type}</td>
+                            <td className="py-3 px-5">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase border ${item.is_active ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-slate-600 bg-slate-50 border-slate-200'}`}>
+                                {item.is_active ? 'Active' : 'Inactive'}
+                              </span>
+                            </td>
+                          </>
+                        )}
+                        {activeTab === 'LOCATIONS' && (
+                          <>
+                            <td className="py-3 px-5 font-mono text-primary font-medium">{item.location_id}</td>
+                            <td className="py-3 px-5 text-on-surface">{item.city}</td>
+                            <td className="py-3 px-5 text-on-surface">{item.state}</td>
+                            <td className="py-3 px-5">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase border ${item.is_active ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-slate-600 bg-slate-50 border-slate-200'}`}>
+                                {item.is_active ? 'Active' : 'Inactive'}
+                              </span>
+                            </td>
+                          </>
+                        )}
+                        <td className="py-3 px-5 text-right">
+                          <button 
+                            onClick={() => { setSelectedEntity(item); setModalType(activeTab); setIsModalOpen(true); }}
+                            className="text-on-surface-variant hover:text-primary transition-colors p-1" 
+                            title="Edit"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -325,7 +386,7 @@ export function MasterData() {
       <MasterEntityModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        entityType={activeTab}
+        entityType={modalType}
         initialData={selectedEntity}
         verticals={verticals}
       />

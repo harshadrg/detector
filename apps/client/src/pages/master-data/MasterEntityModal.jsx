@@ -42,6 +42,7 @@ export function MasterEntityModal({ isOpen, onClose, entityType, initialData, ve
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(schema),
@@ -54,7 +55,6 @@ export function MasterEntityModal({ isOpen, onClose, entityType, initialData, ve
 
   useEffect(() => {
     if (isOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setApiError(null);
       if (initialData) {
         reset({
@@ -238,6 +238,24 @@ export function MasterEntityModal({ isOpen, onClose, entityType, initialData, ve
                 Active Entity
               </label>
             </div>
+
+            {/* Password confirmation for deactivation */}
+            {/* eslint-disable-next-line react-hooks/incompatible-library */}
+            {isEditing && initialData?.is_active === true && !watch('is_active') && (
+              <div className="mt-4 p-4 bg-error-container/20 border border-error-container rounded-lg">
+                <label className="block text-sm font-medium text-error mb-1">
+                  Password Required to Deactivate
+                </label>
+                <input
+                  type="password"
+                  required
+                  {...register('password')}
+                  className="w-full px-3 py-2 bg-surface-container-lowest border border-error/50 rounded-lg text-sm focus:ring-2 focus:ring-error focus:border-error"
+                  placeholder="Enter your password to confirm"
+                />
+                <p className="text-error text-xs mt-1 font-medium">Deactivating this entity is a high-risk action.</p>
+              </div>
+            )}
 
           </form>
         </div>

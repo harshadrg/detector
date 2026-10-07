@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   getAllMasters,
   listVerticals,
+  listVerticalEmployees,
   createVertical,
   updateVertical,
   listSBUs,
@@ -39,6 +40,11 @@ router.get(
   '/verticals',
   requireAnyPermission(['BPMS.MASTER.VIEW', 'BPMS.PROCESS.VIEW']),
   listVerticals
+);
+router.get(
+  '/verticals/:id/employees',
+  requireAnyPermission(['BPMS.MASTER.VIEW', 'BPMS.PROCESS.VIEW']),
+  listVerticalEmployees
 );
 router.post(
   '/verticals',

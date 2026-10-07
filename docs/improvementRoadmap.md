@@ -44,7 +44,7 @@ This document outlines the verified, implementation-ready improvement plan for t
 ---
 
 ## Phase 3: Master Data Cascading Integrity & UI Overhaul
-**Status:** [ ] Pending
+**Status:** [x] Completed
 
 * **Objective:** Establish relational safety for master data, implement the missing Manage UI, and visualize the Vertical -> SBU hierarchy.
 * **Current Behavior:** Master Data uses soft deletes (`is_active = 0`), but deactivating a Client or SBU leaves attached processes orphaned (no cascading checks). The UI presents Verticals and SBUs in disconnected tabs. Add/Filter/Edit actions are static mockups.
@@ -52,13 +52,13 @@ This document outlines the verified, implementation-ready improvement plan for t
 * **Dependencies:** None.
 * **Security & Validation:** **High-Risk Action:** Deactivating a Master Data entity via the new Manage modal must require password confirmation.
 * **Step-by-Step Actions:**
-  - [ ] **Step 1:** **Backend:** Update `master.service.js` `listVerticals` and `listSBUs` to compute `COUNT(DISTINCT po.employee_ecode) AS employee_count`.
-  - [ ] **Step 2:** **Backend:** Create a detailed endpoint (`GET .../verticals/:id/employees`) to list assigned employees.
-  - [ ] **Step 3:** **Backend:** Implement a cascading validation check in the `updateX` endpoints: if `is_active = 0` is requested, verify no active processes depend on this entity. If they do, block the deactivation or require an explicit override flag.
-  - [ ] **Step 4:** **Frontend:** Redesign `MasterData.jsx` to show SBUs nested under their parent Verticals (e.g., using an accordion).
-  - [ ] **Step 5:** **Frontend:** Create `Add[Entity]Modal` components and wire them to the backend create endpoints.
-  - [ ] **Step 6:** **Frontend:** Replace the dummy "Edit" button with a "Manage" modal that shows details, the derived employee list, and allows toggling `is_active` (with password confirmation for deactivation).
-  - [ ] **Step 7:** **Frontend:** Remove the static "Export Schema" and "Sync All" buttons.
+  - [x] **Step 1:** **Backend:** Update `master.service.js` `listVerticals` and `listSBUs` to compute `COUNT(DISTINCT po.employee_ecode) AS employee_count`.
+  - [x] **Step 2:** **Backend:** Create a detailed endpoint (`GET .../verticals/:id/employees`) to list assigned employees.
+  - [x] **Step 3:** **Backend:** Implement a cascading validation check in the `updateX` endpoints: if `is_active = 0` is requested, verify no active processes depend on this entity. If they do, block the deactivation or require an explicit override flag.
+  - [x] **Step 4:** **Frontend:** Redesign `MasterData.jsx` to show SBUs nested under their parent Verticals (e.g., using an accordion).
+  - [x] **Step 5:** **Frontend:** Create `Add[Entity]Modal` components and wire them to the backend create endpoints.
+  - [x] **Step 6:** **Frontend:** Replace the dummy "Edit" button with a "Manage" modal that shows details, the derived employee list, and allows toggling `is_active` (with password confirmation for deactivation).
+  - [x] **Step 7:** **Frontend:** Remove the static "Export Schema" and "Sync All" buttons.
 * **Verification Criteria:** Attempting to deactivate an SBU with active processes should be blocked or safely handled. The UI should display the nested relationship.
 
 ---

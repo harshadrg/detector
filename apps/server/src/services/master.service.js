@@ -89,7 +89,14 @@ class MasterService {
         v.vertical_code,
         v.vertical_name,
         v.is_active,
-        COUNT(s.sbu_id) AS sbu_count
+        COUNT(s.sbu_id) AS sbu_count,
+        (
+          SELECT COUNT(DISTINCT po.employee_ecode)
+          FROM dbo.SBUs s2
+          JOIN dbo.Process_Registry pr ON pr.sbu_id = s2.sbu_id
+          JOIN dbo.Process_Ownership po ON po.registry_id = pr.registry_id
+          WHERE s2.vertical_id = v.vertical_id AND pr.status IN ('ACTIVE', 'TRANSITION') AND po.is_current = 1
+        ) as employee_count
       FROM dbo.Verticals v
       LEFT JOIN dbo.SBUs s ON s.vertical_id = v.vertical_id
       ${whereSql}
@@ -107,6 +114,26 @@ class MasterService {
       { id: { type: sql.Int, value: id } }
     );
     return result.recordset?.[0] || null;
+  }
+
+  async getVerticalEmployees(id) {
+    const result = await query(`
+      SELECT DISTINCT 
+        e.ecode,
+        e.name,
+        e.email,
+        e.designation,
+        e.status
+      FROM dbo.SBUs s
+      JOIN dbo.Process_Registry pr ON pr.sbu_id = s.sbu_id
+      JOIN dbo.Process_Ownership po ON po.registry_id = pr.registry_id
+      JOIN dbo.Employees e ON e.ecode = po.employee_ecode
+      WHERE s.vertical_id = @id 
+        AND pr.status IN ('ACTIVE', 'TRANSITION') 
+        AND po.is_current = 1
+      ORDER BY e.name ASC
+    `, { id: { type: sql.Int, value: id } });
+    return result.recordset || [];
   }
 
   async createVertical({ vertical_code, vertical_name }) {
@@ -194,7 +221,13 @@ class MasterService {
         s.vertical_id,
         v.vertical_code,
         v.vertical_name,
-        s.is_active
+        s.is_active,
+        (
+          SELECT COUNT(DISTINCT po.employee_ecode)
+          FROM dbo.Process_Registry pr
+          JOIN dbo.Process_Ownership po ON po.registry_id = pr.registry_id
+          WHERE pr.sbu_id = s.sbu_id AND pr.status IN ('ACTIVE', 'TRANSITION') AND po.is_current = 1
+        ) as employee_count
       FROM dbo.SBUs s
       JOIN dbo.Verticals v ON v.vertical_id = s.vertical_id
       ${whereSql}
