@@ -9,24 +9,20 @@ import {
   Search, 
   Filter, 
   Plus, 
-  Landmark, 
-  Factory, 
-  MonitorSmartphone, 
-  Check, 
-  X, 
   Edit2, 
-  MoreVertical,
-  CloudDownload,
-  RefreshCw,
   Info,
   Network,
   ShieldCheck,
   FileSignature
 } from 'lucide-react';
 
+import { MasterEntityModal } from './MasterEntityModal';
+
 export function MasterData() {
   const [activeTab, setActiveTab] = useState('VERTICALS');
   const [search, setSearch] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEntity, setSelectedEntity] = useState(null);
 
   const { data: verticalsData, isLoading: isLoadingVerticals } = useQuery({
     queryKey: ['master-verticals', search],
@@ -73,16 +69,6 @@ export function MasterData() {
           <div>
             <h1 className="font-headline font-bold text-3xl text-on-surface tracking-tight">Master Data</h1>
             <p className="text-on-surface-variant text-sm mt-1">Manage organizational reference data</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-outline-variant/60 bg-surface text-on-surface hover:bg-surface-container text-xs font-semibold transition-colors duration-150" type="button">
-              <CloudDownload className="w-4 h-4" />
-              <span>Export Schema</span>
-            </button>
-            <button className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-outline-variant/60 bg-surface text-on-surface hover:bg-surface-container text-xs font-semibold transition-colors duration-150" type="button">
-              <RefreshCw className="w-4 h-4" />
-              <span>Sync All</span>
-            </button>
           </div>
         </section>
 
@@ -151,7 +137,11 @@ export function MasterData() {
               <Filter className="w-4 h-4" />
               <span>Filters</span>
             </button>
-            <button className="bg-primary hover:bg-primary-dim text-on-primary font-medium px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all duration-150 active:scale-95 text-sm" type="button">
+            <button 
+              onClick={() => { setSelectedEntity(null); setIsModalOpen(true); }}
+              className="bg-primary hover:bg-primary-dim text-on-primary font-medium px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all duration-150 active:scale-95 text-sm" 
+              type="button"
+            >
               <Plus className="w-5 h-5 font-bold" />
               <span>Add {activeTab.slice(0, -1)}</span>
             </button>
@@ -265,7 +255,11 @@ export function MasterData() {
                         </>
                       )}
                       <td className="py-3 px-5 text-right">
-                        <button className="text-on-surface-variant hover:text-primary transition-colors p-1" title="Edit">
+                        <button 
+                          onClick={() => { setSelectedEntity(item); setIsModalOpen(true); }}
+                          className="text-on-surface-variant hover:text-primary transition-colors p-1" 
+                          title="Edit"
+                        >
                           <Edit2 className="w-4 h-4" />
                         </button>
                       </td>
@@ -327,6 +321,14 @@ export function MasterData() {
           </div>
         </section>
       </div>
+
+      <MasterEntityModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        entityType={activeTab}
+        initialData={selectedEntity}
+        verticals={verticals}
+      />
     </main>
   );
 }

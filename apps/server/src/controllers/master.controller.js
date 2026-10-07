@@ -1,5 +1,6 @@
 import { masterService } from '../services/master.service.js';
 import { auditService } from '../services/audit.service.js';
+import { query, sql } from '../db/connection.js';
 import {
   createVerticalSchema,
   updateVerticalSchema,
@@ -280,6 +281,25 @@ export async function updateSBU(req, res) {
           details: [],
         },
       });
+    }
+
+    // Phase 3: Safe SBU Deactivation Check
+    if (parseResult.data.is_active === false && existing.is_active === true) {
+      const activeProcesses = await query(
+        `SELECT COUNT(*) as count FROM dbo.Process_Registry WHERE sbu_id = @sbu_id AND status IN ('ACTIVE', 'TRANSITION')`,
+        { sbu_id: { type: sql.Int, value: id } }
+      );
+      if (activeProcesses.recordset[0].count > 0) {
+        return res.status(409).json({
+          success: false,
+          data: null,
+          error: {
+            code: 'ACTIVE_PROCESSES_EXIST',
+            message: `Cannot deactivate SBU. There are ${activeProcesses.recordset[0].count} active or transitioning processes tied to this SBU.`,
+            details: [],
+          },
+        });
+      }
     }
 
     const updated = await masterService.updateSBU(id, parseResult.data);
