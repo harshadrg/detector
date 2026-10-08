@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
   UserPlus, 
   Search, 
@@ -7,7 +7,6 @@ import {
   CheckCircle2, 
   AlertCircle, 
   Loader2, 
-  ShieldAlert,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
@@ -15,8 +14,8 @@ import { employeeApi } from '../../lib/api.js';
 import { useAuth } from '../../context/useAuth.js';
 import { Button } from '../../components/ui/Button.jsx';
 import { Badge } from '../../components/ui/Badge.jsx';
-import { Modal } from '../../components/ui/Modal.jsx';
 import { AddEmployeeModal } from './AddEmployeeModal.jsx';
+import { ManageEmployeeModal } from './ManageEmployeeModal.jsx';
 
 export function EmployeeDirectory() {
   const queryClient = useQueryClient();
@@ -53,21 +52,6 @@ export function EmployeeDirectory() {
   const employees = data?.employees || [];
   const meta = data?.meta || { totalCount: 0, totalPages: 1 };
 
-  // Status mutation (Activate / Deactivate)
-  const statusMutation = useMutation({
-    mutationFn: ({ ecode, newStatus }) => employeeApi.updateStatus(ecode, newStatus),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['employees'] });
-      setTargetEmployee(null);
-      setActionSuccess(`Employee ${variables.ecode} status successfully changed to ${variables.newStatus}.`);
-      setActionError(null);
-      setTimeout(() => setActionSuccess(null), 5000);
-    },
-    onError: (err) => {
-      setActionError(err.message || 'Failed to update employee status.');
-    },
-  });
-
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setPage(1);
@@ -85,12 +69,6 @@ export function EmployeeDirectory() {
   const openStatusConfirm = (emp) => {
     setActionError(null);
     setTargetEmployee(emp);
-  };
-
-  const confirmStatusChange = () => {
-    if (!targetEmployee) return;
-    const newStatus = targetEmployee.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-    statusMutation.mutate({ ecode: targetEmployee.ecode, newStatus });
   };
 
   const getInitials = (name, ecode) => {
@@ -321,7 +299,7 @@ export function EmployeeDirectory() {
                             <button
                               type="button"
                               onClick={() => openStatusConfirm(emp)}
-                              disabled={isSelf || statusMutation.isPending}
+                              disabled={isSelf}
                               title={isSelf ? 'Cannot deactivate your own account' : 'Deactivate employee'}
                               className="text-[11px] font-medium text-error hover:underline disabled:opacity-30 disabled:no-underline cursor-pointer disabled:cursor-not-allowed"
                             >
@@ -331,7 +309,6 @@ export function EmployeeDirectory() {
                             <button
                               type="button"
                               onClick={() => openStatusConfirm(emp)}
-                              disabled={statusMutation.isPending}
                               className="text-[11px] font-medium text-primary hover:underline cursor-pointer"
                             >
                               Activate
@@ -406,63 +383,18 @@ export function EmployeeDirectory() {
         }}
       />
 
-      {/* Status Confirmation Modal */}
-      {targetEmployee && (
-        <Modal
-          isOpen={Boolean(targetEmployee)}
-          onClose={() => setTargetEmployee(null)}
-          title={targetEmployee.status === 'ACTIVE' ? 'Confirm Deactivation' : 'Confirm Activation'}
-        >
-          <div className="space-y-4">
-            {targetEmployee.status === 'ACTIVE' ? (
-              <>
-                <p className="text-xs text-on-surface-variant leading-relaxed">
-                  Are you sure you want to deactivate <strong className="text-on-surface">{targetEmployee.name}</strong> ({targetEmployee.ecode})? This will immediately revoke active access tokens and prevent further console login.
-                </p>
-
-                {targetEmployee.activeProcessCount > 0 && (
-                  <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 flex items-start gap-2.5 text-xs">
-                    <ShieldAlert className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
-                    <div>
-                      <span className="font-semibold block">Offboarding Process Safeguard</span>
-                      <span>
-                        This user is currently assigned to <strong className="font-mono">{targetEmployee.activeProcessCount}</strong> active/transition process(es). Deactivating will flag these processes as dangling assignments until handed over.
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <p className="text-xs text-on-surface-variant leading-relaxed">
-                Activate user <strong className="text-on-surface">{targetEmployee.name}</strong> ({targetEmployee.ecode})? This will restore their authorization and allow them to sign in.
-              </p>
-            )}
-
-            <div className="pt-3 border-t border-outline-variant/20 flex items-center justify-end gap-2.5">
-              <Button
-                variant="outline"
-                onClick={() => setTargetEmployee(null)}
-                disabled={statusMutation.isPending}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant={targetEmployee.status === 'ACTIVE' ? 'danger' : 'primary'}
-                onClick={confirmStatusChange}
-                disabled={statusMutation.isPending}
-                icon={statusMutation.isPending ? Loader2 : null}
-              >
-                {statusMutation.isPending 
-                  ? 'Updating...' 
-                  : targetEmployee.status === 'ACTIVE' 
-                    ? 'Confirm Deactivation' 
-                    : 'Confirm Activation'
-                }
-              </Button>
-            </div>
-          </div>
-        </Modal>
-      )}
+      {/* Manage Employee Modal */}
+      <ManageEmployeeModal
+        isOpen={Boolean(targetEmployee)}
+        onClose={() => setTargetEmployee(null)}
+        employee={targetEmployee}
+        onSuccess={(msg) => {
+          queryClient.invalidateQueries({ queryKey: ['employees'] });
+          setTargetEmployee(null);
+          setActionSuccess(msg);
+          setTimeout(() => setActionSuccess(null), 5000);
+        }}
+      />
     </div>
   );
 }

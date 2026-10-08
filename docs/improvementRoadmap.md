@@ -64,7 +64,7 @@ This document outlines the verified, implementation-ready improvement plan for t
 ---
 
 ## Phase 4: Employee Directory Scoping & Security
-**Status:** [ ] Pending
+**Status:** [x] Completed
 
 * **Objective:** Secure employee visibility based on ownership connections and enforce password confirmation for account deactivation.
 * **Current Behavior:** All employees are visible globally. Deactivation occurs instantly without password verification. A full "hierarchy view" was requested but is unsupported by the architecture (hierarchy only exists per-process).
@@ -72,11 +72,11 @@ This document outlines the verified, implementation-ready improvement plan for t
 * **Dependencies:** None.
 * **Security & Validation:** **High-Risk Action:** Employee deactivation requires password confirmation.
 * **Step-by-Step Actions:**
-  - [ ] **Step 1:** **Backend:** Update `employee.controller.js` `updateEmployeeStatus`. If status is `INACTIVE`, require a `password` parameter, fetch the hash from `dbo.Employee_Identities`, and verify it before proceeding.
-  - [ ] **Step 2:** **Backend:** Update `listEmployees` to evaluate user roles. If not an Admin, inject a subquery to return only employees who co-own processes with the requester.
-  - [ ] **Step 3:** **Frontend:** Move the "Deactivate" action inside a new "Manage" modal.
-  - [ ] **Step 4:** **Frontend:** Add a password input challenge to the deactivation flow in the Manage modal.
-  - [ ] **Step 5:** **Frontend:** Since a global organizational tree doesn't exist, display a list of the employee's assigned processes in the Manage modal to represent their "hierarchy".
+  - [x] **Step 1:** **Backend:** Update `employee.controller.js` `updateEmployeeStatus`. If status is `INACTIVE`, require a `password` parameter, fetch the hash from `dbo.Employee_Identities`, and verify it before proceeding.
+  - [x] **Step 2:** **Backend:** Update `listEmployees` to evaluate user roles. If not an Admin, inject a subquery to return only employees who co-own processes with the requester.
+  - [x] **Step 3:** **Frontend:** Move the "Deactivate" action inside a new "Manage" modal.
+  - [x] **Step 4:** **Frontend:** Add a password input challenge to the deactivation flow in the Manage modal.
+  - [x] **Step 5:** **Frontend:** Since a global organizational tree doesn't exist, display a list of the employee's assigned processes in the Manage modal to represent their "hierarchy".
 * **Verification Criteria:** Non-admins only see connected peers. Deactivating an employee requires a valid password.
 
 ---

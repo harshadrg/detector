@@ -31,6 +31,7 @@ export const updateStatusSchema = z.object({
   status: z.enum(['ACTIVE', 'INACTIVE'], {
     errorMap: () => ({ message: "Status must be either 'ACTIVE' or 'INACTIVE'." }),
   }),
+  password: z.string().optional(),
 });
 
 export const assignRoleSchema = z.object({

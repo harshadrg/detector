@@ -167,16 +167,21 @@ export const employeeApi = {
       method: 'GET',
     });
   },
+  getAssignments: async (ecode) => {
+    return apiFetch(`/api/core/employees/${encodeURIComponent(ecode)}/assignments`, {
+      method: 'GET',
+    });
+  },
   create: async (employeeData) => {
     return apiFetch('/api/core/employees', {
       method: 'POST',
       body: employeeData,
     });
   },
-  updateStatus: async (ecode, status) => {
+  updateStatus: async (ecode, status, password) => {
     return apiFetch(`/api/core/employees/${encodeURIComponent(ecode)}/status`, {
       method: 'PATCH',
-      body: { status },
+      body: { status, password },
     });
   },
 };

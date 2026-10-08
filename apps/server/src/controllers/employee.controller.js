@@ -1,5 +1,5 @@
 import { query, executeTransaction, sql } from '../db/connection.js';
-import { hashPassword } from '../utils/crypto.js';
+import { hashPassword, verifyPassword } from '../utils/crypto.js';
 import { authorizationService } from '../services/authorization.service.js';
 import { auditService } from '../services/audit.service.js';
 import { notificationService } from '../services/notification.service.js';
@@ -47,6 +47,23 @@ export async function listEmployees(req, res) {
     if (search && search.length > 0) {
       whereClauses.push('(e.ecode LIKE @searchPattern OR e.name LIKE @searchPattern OR e.email LIKE @searchPattern)');
       params.searchPattern = { type: sql.NVarChar(150), value: `%${search}%` };
+    }
+
+    const hasAdminRole = req.user.roles.some(
+      (r) => r.role_category === 'PLATFORM_ADMIN' || r.role_category === 'MODULE_ADMIN'
+    );
+
+    if (!hasAdminRole) {
+      // Non-admins only see themselves and employees sharing active process ownership
+      whereClauses.push(`(e.ecode = @reqEcode OR e.ecode IN (
+        SELECT DISTINCT po2.employee_ecode
+        FROM dbo.Process_Ownership po1
+        JOIN dbo.Process_Ownership po2 ON po1.registry_id = po2.registry_id
+        WHERE po1.employee_ecode = @reqEcode
+          AND po1.is_current = 1
+          AND po2.is_current = 1
+      ))`);
+      params.reqEcode = { type: sql.VarChar(20), value: req.user.ecode };
     }
 
     const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
@@ -354,7 +371,7 @@ export async function updateEmployeeStatus(req, res) {
       });
     }
 
-    const { status } = parseResult.data;
+    const { status, password } = parseResult.data;
 
     // Self-deactivation safeguard
     if (req.user.ecode === ecode && status === 'INACTIVE') {
@@ -367,6 +384,47 @@ export async function updateEmployeeStatus(req, res) {
           details: [],
         },
       });
+    }
+
+    if (status === 'INACTIVE') {
+      if (!password) {
+        return res.status(400).json({
+          success: false,
+          data: null,
+          error: {
+            code: 'PASSWORD_REQUIRED',
+            message: 'Password confirmation is required to deactivate an employee.',
+            details: [],
+          },
+        });
+      }
+      
+      const adminIdentity = await query(
+        `SELECT password_hash FROM dbo.Employee_Identities WHERE ecode = @ecode`,
+        { ecode: { type: sql.VarChar(20), value: req.user.ecode } }
+      );
+      
+      const storedHash = adminIdentity.recordset?.[0]?.password_hash;
+      if (!storedHash) {
+        return res.status(401).json({
+          success: false,
+          data: null,
+          error: { code: 'UNAUTHORIZED', message: 'Admin identity not found.', details: [] }
+        });
+      }
+      
+      const isValid = await verifyPassword(password, storedHash);
+      if (!isValid) {
+        return res.status(401).json({
+          success: false,
+          data: null,
+          error: {
+            code: 'INVALID_PASSWORD',
+            message: 'Invalid password. Deactivation aborted.',
+            details: [],
+          },
+        });
+      }
     }
 
     // Verify employee exists
@@ -706,6 +764,52 @@ export async function assignRole(req, res) {
         message: 'Failed to assign or revoke employee role.',
         details: [error.message],
       },
+    });
+  }
+}
+
+/**
+ * Retrieves active process assignments for a specific employee.
+ */
+export async function getEmployeeAssignments(req, res) {
+  try {
+    const { ecode } = req.params;
+    
+    // Authorization: User can view their own assignments, or if they have CORE.USER.VIEW
+    if (req.user.ecode !== ecode && !authorizationService.hasPermission(req.user, 'CORE.USER.VIEW')) {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        error: { code: 'FORBIDDEN', message: 'Not authorized to view these assignments.', details: [] }
+      });
+    }
+
+    const activeProcCheck = await query(
+      `SELECT 
+         po.ownership_id, po.registry_id, po.role_type,
+         pr.process_code, pr.process_name, pr.status AS process_status
+       FROM dbo.Process_Ownership po
+       JOIN dbo.Process_Registry pr ON pr.registry_id = po.registry_id
+       WHERE po.employee_ecode = @ecode 
+         AND po.is_current = 1 
+         AND pr.status IN ('ACTIVE', 'TRANSITION')`,
+      { ecode: { type: sql.VarChar(20), value: ecode } }
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: activeProcCheck.recordset || [],
+      error: null
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      data: null,
+      error: {
+        code: 'GET_ASSIGNMENTS_FAILED',
+        message: 'Failed to fetch employee assignments.',
+        details: [error.message]
+      }
     });
   }
 }

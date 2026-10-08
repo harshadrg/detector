@@ -3,6 +3,7 @@ import {
   listEmployees,
   createEmployee,
   updateEmployeeStatus,
+  getEmployeeAssignments,
 } from '../controllers/employee.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 import {
@@ -19,6 +20,15 @@ router.get(
   contextSwitchMiddleware,
   requirePermission('CORE.USER.VIEW'),
   listEmployees
+);
+
+// Get Employee Assignments (Requires CORE.USER.VIEW)
+router.get(
+  '/:ecode/assignments',
+  authenticate,
+  contextSwitchMiddleware,
+  requirePermission('CORE.USER.VIEW'),
+  getEmployeeAssignments
 );
 
 // Employee Creation (Requires CORE.USER.MANAGE)
