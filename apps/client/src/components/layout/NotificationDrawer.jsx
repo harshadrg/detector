@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Bell, CheckSquare, ArrowLeftRight, AlertTriangle, CheckCircle, ShieldCheck, UserPlus, Info } from 'lucide-react';
+import { Bell, CheckSquare, ArrowLeftRight, AlertTriangle, ShieldCheck, Info } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationApi } from '../../lib/api';
 

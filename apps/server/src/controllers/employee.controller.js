@@ -29,7 +29,7 @@ export async function listEmployees(req, res) {
       });
     }
 
-    const { page, pageSize, status, search } = parseResult.data;
+    const { page, pageSize, status, search, role_code } = parseResult.data;
     const offset = (page - 1) * pageSize;
 
     // Build WHERE clause dynamically with parameters
@@ -47,6 +47,16 @@ export async function listEmployees(req, res) {
     if (search && search.length > 0) {
       whereClauses.push('(e.ecode LIKE @searchPattern OR e.name LIKE @searchPattern OR e.email LIKE @searchPattern)');
       params.searchPattern = { type: sql.NVarChar(150), value: `%${search}%` };
+    }
+
+    if (role_code && role_code.length > 0) {
+      whereClauses.push(`e.ecode IN (
+        SELECT erm.ecode 
+        FROM dbo.Employee_Role_Mapping erm 
+        JOIN dbo.Roles r ON r.role_id = erm.role_id 
+        WHERE r.role_code = @roleCode AND r.is_active = 1
+      )`);
+      params.roleCode = { type: sql.VarChar(50), value: role_code };
     }
 
     const hasAdminRole = req.user.roles.some(

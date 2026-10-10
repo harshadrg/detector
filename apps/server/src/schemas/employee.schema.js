@@ -55,4 +55,5 @@ export const listEmployeesQuerySchema = z.object({
   pageSize: z.coerce.number().int().positive().max(100).default(10),
   status: z.enum(['ALL', 'ACTIVE', 'INACTIVE']).default('ALL'),
   search: z.string().trim().optional().default(''),
+  role_code: z.string().trim().optional().default(''),
 });

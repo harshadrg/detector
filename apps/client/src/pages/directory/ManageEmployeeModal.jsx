@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { ShieldAlert, Loader2, KeyRound } from 'lucide-react';
-import { employeeApi } from '../../../lib/api.js';
-import { Modal } from '../../../components/ui/Modal.jsx';
-import { Button } from '../../../components/ui/Button.jsx';
-import { Input } from '../../../components/ui/Input.jsx';
+import { employeeApi } from '../../lib/api.js';
+import { Modal } from '../../components/ui/Modal.jsx';
+import { Button } from '../../components/ui/Button.jsx';
+import { Input } from '../../components/ui/Input.jsx';
 
 export function ManageEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
   const [password, setPassword] = useState('');
