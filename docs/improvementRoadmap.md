@@ -128,9 +128,9 @@ This document outlines the verified, implementation-ready improvement plan for t
 * **Dependencies:** Phase 2 (Audit Logging) ensures changes made during bulk updates are properly logged.
 * **Security & Validation:** **High-Risk Action:** The final batch commit requires password confirmation.
 * **Step-by-Step Actions:**
-  - [ ] **Step 1:** **Database:** Add `match_status`, `existing_registry_id`, `diff_summary_json`, and `is_confirmed` to `dbo.Import_Staging_Rows`.
-  - [ ] **Step 2:** **Backend:** Enhance `stageExcelUpload` to search `Process_Registry` for matches. Flag rows as `NEW`, `EXISTING_EXACT`, or `DIFFERENCE` (generating a JSON diff payload).
-  - [ ] **Step 3:** **Backend:** Update `commitBatch` to require a `password` parameter (validate via `verifyPassword`). Process only explicitly confirmed rows (inserting `NEW`, updating `DIFFERENCE` while emitting audit events).
-  - [ ] **Step 4:** **Frontend:** In `ExcelImport.jsx`, build a "Check/Compare" view showing grouped rows (New, Existing, Differences). Allow users to explicitly select which rows to commit.
-  - [ ] **Step 5:** **Frontend:** Intercept the final submit button to display a Security Confirmation Modal, requiring the user's password before sending the payload.
+  - [x] **Step 1:** **Database:** Add `match_status`, `existing_registry_id`, `diff_summary_json`, and `is_confirmed` to `dbo.Import_Staging_Rows`.
+  - [x] **Step 2:** **Backend:** Enhance `stageExcelUpload` to search `Process_Registry` for matches. Flag rows as `NEW`, `EXISTING_EXACT`, or `DIFFERENCE` (generating a JSON diff payload).
+  - [x] **Step 3:** **Backend:** Update `commitBatch` to require a `password` parameter (validate via `verifyPassword`). Process only explicitly confirmed rows (inserting `NEW`, updating `DIFFERENCE` while emitting audit events).
+  - [x] **Step 4:** **Frontend:** In `ExcelImport.jsx`, build a "Check/Compare" view showing grouped rows (New, Existing, Differences). Allow users to explicitly select which rows to commit.
+  - [x] **Step 5:** **Frontend:** Intercept the final submit button to display a Security Confirmation Modal, requiring the user's password before sending the payload.
 * **Verification Criteria:** Re-uploading the exact same Excel sheet results in all rows being flagged as `EXISTING_EXACT` with no duplicates created. The final commit prompts for a password and correctly executes updates.
