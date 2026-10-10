@@ -8,7 +8,6 @@ import { RegisterProcess } from './pages/registry/RegisterProcess.jsx';
 import { ProcessDetail } from './pages/registry/ProcessDetail.jsx';
 import { OperationalOverview } from './pages/overview/OperationalOverview.jsx';
 import { ReviewQueue } from './pages/reviews/ReviewQueue.jsx';
-import { PMHandovers } from './pages/handovers/PMHandovers.jsx';
 import { ExcelImport } from './pages/import/ExcelImport.jsx';
 import { MasterData } from './pages/master-data/MasterData.jsx';
 import { AuditLedger } from './pages/audit/AuditLedger.jsx';
@@ -56,7 +55,6 @@ export default function App() {
           <Route path="processes" element={<Navigate to="/registry" replace />} />
           <Route path="processes/:id" element={<ErrorBoundary><ProcessDetail /></ErrorBoundary>} />
           <Route path="reviews" element={<ErrorBoundary><ReviewQueue /></ErrorBoundary>} />
-          <Route path="handovers" element={<ErrorBoundary><PMHandovers /></ErrorBoundary>} />
           <Route path="import" element={<ErrorBoundary><ExcelImport /></ErrorBoundary>} />
           <Route path="master-data" element={<ErrorBoundary><MasterData /></ErrorBoundary>} />
           <Route path="audit" element={<ErrorBoundary><AuditLedger /></ErrorBoundary>} />

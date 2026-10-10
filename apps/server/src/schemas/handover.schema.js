@@ -11,6 +11,7 @@ export const requestHandoverSchema = z.object({
 export const reviewHandoverSchema = z.object({
   action: z.enum(['APPROVE', 'REJECT'], { required_error: 'action must be APPROVE or REJECT.' }),
   review_remarks: z.string().trim().max(500).nullable().optional(),
+  password: z.string({ required_error: 'Password is required to approve/reject.' }).min(1, 'Password is required to approve/reject.').max(100),
 }).superRefine((data, ctx) => {
   if (data.action === 'REJECT') {
     if (!data.review_remarks || data.review_remarks.trim().length === 0) {

@@ -1,6 +1,7 @@
 import { handoverService } from '../services/handover.service.js';
-
 import { requestHandoverSchema, reviewHandoverSchema } from '../schemas/handover.schema.js';
+import { verifyPassword } from '../utils/crypto.js';
+import { query, sql } from '../db/connection.js';
 
 export async function requestHandover(req, res) {
   try {
@@ -72,6 +73,33 @@ export async function reviewHandover(req, res) {
       });
     }
     const data = parseResult.data;
+
+    const adminIdentity = await query(
+      `SELECT password_hash FROM dbo.Employee_Identities WHERE ecode = @ecode`,
+      { ecode: { type: sql.VarChar(20), value: req.user.ecode } }
+    );
+    const storedHash = adminIdentity.recordset?.[0]?.password_hash;
+    
+    if (!storedHash) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        error: { code: 'UNAUTHORIZED', message: 'Admin identity not found.', details: [] }
+      });
+    }
+
+    const isValid = await verifyPassword(data.password, storedHash);
+    if (!isValid) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        error: {
+          code: 'INVALID_PASSWORD',
+          message: 'Invalid password. Review aborted.',
+          details: [],
+        },
+      });
+    }
 
     const actingContext = req.header('X-UI-Context-Role') || null;
     const result = await handoverService.reviewHandover(req.user, handoverId, data, actingContext);

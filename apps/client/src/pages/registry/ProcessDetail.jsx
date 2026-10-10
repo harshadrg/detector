@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
-  ArrowLeft, 
+  ArrowLeft, Lock, ShieldCheck, CheckCircle, XCircle, 
   Layers, 
   Network, 
   SlidersHorizontal, 
@@ -18,15 +18,17 @@ import {
   MapPin, 
   Send
 } from 'lucide-react';
-import { processApi, employeeApi, auditApi } from '../../lib/api.js';
+import { processApi, employeeApi, auditApi, handoverApi } from '../../lib/api.js';
 import { Button } from '../../components/ui/Button.jsx';
 import { Badge } from '../../components/ui/Badge.jsx';
 import { Modal } from '../../components/ui/Modal.jsx';
+import { useAuth } from '../../context/useAuth.js';
 
 export function ProcessDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const [activeTab, setActiveTab] = useState('details'); // 'details' | 'change-request' | 'history' | 'audit'
   const [actionSuccess, setActionSuccess] = useState(null);
@@ -85,6 +87,49 @@ export function ProcessDetail() {
     started_on: '',
     reason: '',
   });
+
+
+  const canReviewHandover = user?.permissions?.includes('BPMS.HANDOVER.APPROVE');
+  const { data: handoverData } = useQuery({
+    queryKey: ['pending-handovers'],
+    queryFn: () => handoverApi.listPendingHandovers(),
+    enabled: Boolean(canReviewHandover),
+  });
+  const pendingHandover = handoverData?.handovers?.find(h => h.registry_id === Number(id));
+
+  const [handoverPasswordPrompt, setHandoverPasswordPrompt] = useState({ isOpen: false, handoverId: null, action: null });
+  const [handoverPassword, setHandoverPassword] = useState('');
+  const [handoverRemarks, setHandoverRemarks] = useState('');
+
+  const reviewHandoverMutation = useMutation({
+    mutationFn: ({ handoverId, action, remarks, password }) => 
+      handoverApi.review(handoverId, { action, review_remarks: remarks, password }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['process', id] });
+      queryClient.invalidateQueries({ queryKey: ['process-history', id] });
+      queryClient.invalidateQueries({ queryKey: ['pending-handovers'] });
+      setHandoverPasswordPrompt({ isOpen: false, handoverId: null, action: null });
+      setHandoverPassword('');
+      setHandoverRemarks('');
+      setActionSuccess('Handover review executed successfully.');
+      setTimeout(() => setActionSuccess(null), 5000);
+    },
+    onError: (err) => {
+      setActionError(err.message || 'Handover review failed.');
+    }
+  });
+
+  const confirmHandoverReview = (e) => {
+    e.preventDefault();
+    if (!handoverPassword) return alert('Password required');
+    if (handoverPasswordPrompt.action === 'REJECT' && !handoverRemarks) return alert('Remarks required for rejection');
+    reviewHandoverMutation.mutate({
+      handoverId: handoverPasswordPrompt.handoverId,
+      action: handoverPasswordPrompt.action,
+      remarks: handoverRemarks || 'Approved via Process Detail.',
+      password: handoverPassword
+    });
+  };
 
   // Initialize Change Request form when process loads
   const initChangeForm = () => {
@@ -226,6 +271,49 @@ export function ProcessDetail() {
           >
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{actionError}</span>
+          </div>
+        )}
+
+        
+        {pendingHandover && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-amber-100 text-amber-700 rounded-lg">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-amber-900 text-sm">Pending Handover Request</h3>
+                <p className="text-amber-700 text-xs mt-1">
+                  <strong>{pendingHandover.from_pm?.name || 'System'}</strong> requested a handover to <strong>{pendingHandover.to_pm?.name}</strong>.
+                  <br/>Reason: {pendingHandover.reason || pendingHandover.scenario}
+                </p>
+                <div className="mt-2">
+                  <input
+                    type="text"
+                    placeholder="Audit remarks (required for rejection)..."
+                    value={handoverRemarks}
+                    onChange={(e) => setHandoverRemarks(e.target.value)}
+                    className="w-full sm:w-80 text-xs px-3 py-1.5 rounded border border-amber-300 bg-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                className="bg-white border-emerald-300 text-emerald-700 hover:bg-emerald-50 h-8 px-3 text-xs"
+                onClick={() => setHandoverPasswordPrompt({ isOpen: true, handoverId: pendingHandover.handover_id, action: 'APPROVE' })}
+              >
+                <CheckCircle className="w-3.5 h-3.5 mr-1" /> Approve
+              </Button>
+              <Button 
+                variant="outline" 
+                className="bg-white border-rose-300 text-rose-700 hover:bg-rose-50 h-8 px-3 text-xs"
+                onClick={() => setHandoverPasswordPrompt({ isOpen: true, handoverId: pendingHandover.handover_id, action: 'REJECT' })}
+              >
+                <XCircle className="w-3.5 h-3.5 mr-1" /> Reject
+              </Button>
+            </div>
           </div>
         )}
 
@@ -855,6 +943,46 @@ export function ProcessDetail() {
           </div>
         </div>
       )}
+
+      
+      {/* Handover Security Modal */}
+      {handoverPasswordPrompt.isOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-scrim/40 backdrop-blur-sm">
+          <div className="bg-surface-container-lowest rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-outline-variant/50 flex flex-col">
+            <div className="px-6 py-4 border-b border-outline-variant/50 bg-error/5 flex items-center gap-3">
+              <div className="p-2 bg-error/10 text-error rounded-full">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-headline font-bold text-lg text-on-surface">Security Confirmation</h3>
+                <p className="text-xs text-on-surface-variant mt-0.5">Authorize handover transition.</p>
+              </div>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-on-surface-variant">
+                You are about to <strong className={handoverPasswordPrompt.action === 'APPROVE' ? 'text-emerald-600' : 'text-rose-600'}>{handoverPasswordPrompt.action}</strong> the handover for {process.process_code}.
+              </p>
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-on-surface flex items-center gap-1.5">
+                  <Lock className="w-4 h-4" /> BPMS Admin Password
+                </label>
+                <input
+                  type="password"
+                  value={handoverPassword}
+                  onChange={(e) => setHandoverPassword(e.target.value)}
+                  className="w-full bg-surface border border-outline-variant rounded-lg px-4 py-2 text-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1"
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div className="px-6 py-4 bg-surface-container flex justify-end gap-3 border-t border-outline-variant/50">
+              <Button variant="outline" onClick={() => setHandoverPasswordPrompt({ isOpen: false, handoverId: null, action: null })}>Cancel</Button>
+              <Button onClick={confirmHandoverReview} className="bg-primary text-on-primary">Confirm & Execute</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       {/* Handover Modal */}
       <HandoverModal

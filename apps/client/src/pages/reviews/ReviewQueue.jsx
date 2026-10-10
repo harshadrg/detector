@@ -6,19 +6,19 @@ import {
   Search, 
   Calendar, 
   ChevronDown, 
-  Wrench, 
   Receipt, 
   RefreshCw, 
   GitCompare, 
   Lock, 
   Edit3, 
   ArrowRight, 
-  Eye, 
   AlertCircle,
   AlertTriangle,
   Clock,
   ShieldCheck,
-  CheckCircle2
+  CheckCircle2,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { changeRequestApi } from '../../lib/api.js';
 import { Button } from '../../components/ui/Button.jsx';
@@ -30,6 +30,10 @@ export function ReviewQueue() {
   const [search, setSearch] = useState('');
   const [expandedCr, setExpandedCr] = useState(null);
   const [auditRemarks, setAuditRemarks] = useState('');
+
+  const [passwordPrompt, setPasswordPrompt] = useState({ isOpen: false, crId: null, action: null });
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   // Fetch pending change requests
   const { data, refetch } = useQuery({
@@ -45,13 +49,18 @@ export function ReviewQueue() {
   const displayItems = changeRequests;
 
   const reviewMutation = useMutation({
-    mutationFn: ({ crId, action, remarks }) => 
-      changeRequestApi.review(crId, { action, review_remarks: remarks }),
+    mutationFn: ({ crId, action, remarks, password }) => 
+      changeRequestApi.review(crId, { action, review_remarks: remarks, password }),
     onSuccess: () => {
       queryClient.invalidateQueries(['pending-reviews']);
       setExpandedCr(null);
       setAuditRemarks('');
+      setPasswordPrompt({ isOpen: false, crId: null, action: null });
+      setPassword('');
     },
+    onError: (err) => {
+      alert(err.message || 'Review failed.');
+    }
   });
 
   const handleReviewAction = (crId, action) => {
@@ -59,7 +68,21 @@ export function ReviewQueue() {
       alert('Audit remarks are mandatory for rejection.');
       return;
     }
-    reviewMutation.mutate({ crId, action, remarks: auditRemarks || 'Approved via Review Queue UI.' });
+    setPasswordPrompt({ isOpen: true, crId, action });
+  };
+
+  const confirmReviewAction = (e) => {
+    e.preventDefault();
+    if (!password) {
+      alert('Password is required.');
+      return;
+    }
+    reviewMutation.mutate({ 
+      crId: passwordPrompt.crId, 
+      action: passwordPrompt.action, 
+      remarks: auditRemarks || 'Approved via Review Queue UI.',
+      password
+    });
   };
 
   const currentTabItems = activeTab === 'changeRequests' ? displayItems : [];
@@ -176,15 +199,10 @@ export function ReviewQueue() {
                       <Badge variant="primary" className="text-[10px] bg-indigo-50 text-indigo-700 border border-indigo-200">
                         <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 mr-1.5 inline-block"></span>{cr.status}
                       </Badge>
-                      {cr.priority === 'HIGH' && (
-                        <span className="bg-red-50 text-red-700 border border-red-200 text-[10px] font-semibold px-2 py-0.5 rounded-full inline-flex items-center gap-1">
-                          <AlertCircle className="w-3 h-3" /> {cr.priority} PRIORITY
-                        </span>
-                      )}
                     </div>
                     <div className="text-xs text-on-surface-variant flex items-center gap-1.5">
                       <Clock className="w-3.5 h-3.5" />
-                      <span>Submitted by: <strong className="text-on-surface font-semibold">{cr.submitted_by}</strong> • {cr.submitted_time}</span>
+                      <span>Requested by: <strong className="text-on-surface font-semibold">{cr.requested_by_name}</strong> • {cr.submitted_time}</span>
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs pt-1 border-t border-outline-variant/30">
@@ -309,20 +327,10 @@ export function ReviewQueue() {
                   <span className="text-xs font-semibold text-on-surface-variant font-mono">{cr.registry_code}</span>
                   <h3 className="font-headline font-bold text-base text-on-surface tracking-tight">{cr.process_name}</h3>
                   <Badge variant={cr.status === 'UNDER_REVIEW' ? 'secondary' : 'primary'} className="text-[10px]">{cr.status}</Badge>
-                  {cr.priority === 'MEDIUM' && (
-                    <span className="bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-semibold px-2 py-0.5 rounded-full inline-flex items-center gap-1">
-                      <AlertTriangle className="w-3 h-3" /> {cr.priority} PRIORITY
-                    </span>
-                  )}
-                  {cr.priority === 'NORMAL' && (
-                    <span className="bg-slate-100 text-slate-700 border border-slate-300 text-[10px] font-semibold px-2 py-0.5 rounded-full inline-flex items-center gap-1">
-                      {cr.priority}
-                    </span>
-                  )}
                 </div>
                 <div className="text-xs text-on-surface-variant flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5" />
-                  <span>Submitted by: <strong className="text-on-surface font-semibold">{cr.submitted_by}</strong> • {cr.submitted_time}</span>
+                  <span>Requested by: <strong className="text-on-surface font-semibold">{cr.requested_by_name}</strong> • {cr.submitted_time}</span>
                 </div>
               </div>
               <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-outline-variant/30">
@@ -351,6 +359,72 @@ export function ReviewQueue() {
           </div>
         )}
       </section>
+
+      {/* Security Confirmation Modal */}
+      {passwordPrompt.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-scrim/40 backdrop-blur-sm">
+          <div className="bg-surface-container-lowest rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-outline-variant/50 flex flex-col">
+            <div className="px-6 py-4 border-b border-outline-variant/50 bg-error/5 flex items-center gap-3">
+              <div className="p-2 bg-error/10 text-error rounded-full">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-headline font-bold text-lg text-on-surface">Administrator Security Confirmation</h3>
+                <p className="text-xs text-on-surface-variant mt-0.5">High-risk state transition requested.</p>
+              </div>
+            </div>
+            
+            <div className="p-6 flex flex-col gap-5">
+              <div className="bg-surface-container rounded-lg p-3 border border-outline-variant/40 flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                <p className="text-sm text-on-surface-variant font-medium">
+                  You are about to <strong className={passwordPrompt.action === 'APPROVE' ? 'text-emerald-600' : 'text-rose-600'}>{passwordPrompt.action}</strong> Change Request 
+                  <strong className="text-on-surface font-mono mx-1">{displayItems.find(r => r.cr_id === passwordPrompt.crId)?.cr_code}</strong>.
+                  This action is recorded in the immutable compliance ledger.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-on-surface flex items-center gap-1.5">
+                  <Lock className="w-4 h-4" /> Please enter your BPMS Admin Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-surface border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 text-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-mono"
+                    placeholder="••••••••••••"
+                    autoFocus
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div className="px-6 py-4 bg-surface-container flex items-center justify-end gap-3 border-t border-outline-variant/50">
+              <Button 
+                variant="outline" 
+                onClick={() => { setPasswordPrompt({ isOpen: false, crId: null, action: null }); setPassword(''); }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={confirmReviewAction}
+                className="bg-primary hover:bg-primary/90 text-on-primary font-bold shadow-sm"
+              >
+                Confirm & Execute
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

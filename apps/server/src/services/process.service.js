@@ -80,15 +80,36 @@ export class ProcessService {
     }
 
     if (search && search.trim().length > 0) {
-      whereClauses.push(`(
-        pr.process_code LIKE @search OR
-        pr.wps_code LIKE @search OR
-        pr.process_name LIKE @search OR
-        c.client_name LIKE @search OR
-        v.vertical_code LIKE @search OR
-        s.sbu_code LIKE @search
-      )`);
-      params.search = { type: sql.NVarChar(150), value: `%${search.trim()}%` };
+      const q = search.trim();
+      const lowerQ = q.toLowerCase();
+      if (lowerQ.startsWith('wps:')) {
+        whereClauses.push('pr.wps_code LIKE @search');
+        params.search = { type: sql.VarChar(100), value: `%${q.substring(4).trim()}%` };
+      } else if (lowerQ.startsWith('code:')) {
+        whereClauses.push('pr.process_code LIKE @search');
+        params.search = { type: sql.VarChar(30), value: `%${q.substring(5).trim()}%` };
+      } else if (lowerQ.startsWith('name:')) {
+        whereClauses.push('pr.process_name LIKE @search');
+        params.search = { type: sql.NVarChar(200), value: `%${q.substring(5).trim()}%` };
+      } else if (lowerQ.startsWith('pm:')) {
+        whereClauses.push(`pr.registry_id IN (
+          SELECT po.registry_id
+          FROM dbo.Process_Ownership po
+          JOIN dbo.Employees e ON e.ecode = po.employee_ecode
+          WHERE po.role_type = 'PM' AND po.is_current = 1 AND (e.name LIKE @search OR po.employee_ecode LIKE @search)
+        )`);
+        params.search = { type: sql.NVarChar(150), value: `%${q.substring(3).trim()}%` };
+      } else {
+        whereClauses.push(`(
+          pr.process_code LIKE @search OR
+          pr.wps_code LIKE @search OR
+          pr.process_name LIKE @search OR
+          c.client_name LIKE @search OR
+          v.vertical_code LIKE @search OR
+          s.sbu_code LIKE @search
+        )`);
+        params.search = { type: sql.NVarChar(150), value: `%${q}%` };
+      }
     }
 
     const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
@@ -423,6 +444,22 @@ export class ProcessService {
 
       for (const o of owners) {
         if (!o.ecode) continue;
+
+        // Domain Integrity Check
+        const roleCheckReq = new sql.Request(transaction);
+        roleCheckReq.input('ecode', sql.VarChar(20), o.ecode);
+        roleCheckReq.input('roleCode', sql.VarChar(50), o.role);
+        const roleCheck = await roleCheckReq.query(`
+          SELECT 1 
+          FROM dbo.Employee_Role_Mapping erm
+          JOIN dbo.Roles r ON r.role_id = erm.role_id
+          WHERE erm.ecode = @ecode AND r.role_code = @roleCode AND r.is_active = 1
+        `);
+
+        if (roleCheck.recordset.length === 0) {
+          throw new Error(`Domain Integrity Error: Employee ${o.ecode} does not hold the active role ${o.role}.`);
+        }
+
         const insertOwnerReq = new sql.Request(transaction);
         insertOwnerReq.input('registry_id', sql.Int, createdRegistryId);
         insertOwnerReq.input('role_type', sql.VarChar(30), o.role);
