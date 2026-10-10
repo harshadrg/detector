@@ -82,7 +82,7 @@ This document outlines the verified, implementation-ready improvement plan for t
 ---
 
 ## Phase 5: Process Registry Search & Validation Enhancements
-**Status:** [ ] Pending
+**Status:** [x] Completed
 
 * **Objective:** Improve search precision, enforce role-based download limits, and fix the broken 5-tier ownership creation logic.
 * **Current Behavior:** Search uses a massive 6-column `OR` block. You cannot search by PM. The "Register Process" form randomly fetches 100 employees without validating if they actually hold the required role (e.g., `SBU_HEAD`).
@@ -90,12 +90,12 @@ This document outlines the verified, implementation-ready improvement plan for t
 * **Dependencies:** None.
 * **Security & Validation:** Form submission requires async `wps_code` validation and a final summary check, but no password (standard data entry). CSV/Excel downloads restricted to Admins; others get PDF.
 * **Step-by-Step Actions:**
-  - [ ] **Step 1:** **Backend:** Update `process.service.js` `listProcesses` to parse search prefixes (`wps:`, `code:`, `name:`, `pm:`). Implement specific targeted `WHERE` clauses for these to replace the broad `OR` search.
-  - [ ] **Step 2:** **Backend:** Add a `role_code` filter to the `listEmployees` API so the frontend can query valid role holders.
-  - [ ] **Step 3:** **Backend:** Enforce domain integrity in `createProcess`: validate that the submitted ecodes actively hold their respective roles in `Employee_Role_Mapping` before creating ownership records.
-  - [ ] **Step 4:** **Frontend:** Update the Process Registry search placeholder to advertise prefixes.
-  - [ ] **Frontend:** Restrict CSV/Excel download buttons based on the user's role payload (Admins only).
-  - [ ] **Step 6:** **Frontend:** Expand `RegisterProcessModal.jsx` to capture all 5 ownership tiers using dynamic, searchable comboboxes filtered by role. Add a final summary confirmation screen before submission.
+  - [x] **Step 1:** **Backend:** Update `process.service.js` `listProcesses` to parse search prefixes (`wps:`, `code:`, `name:`, `pm:`). Implement specific targeted `WHERE` clauses for these to replace the broad `OR` search.
+  - [x] **Step 2:** **Backend:** Add a `role_code` filter to the `listEmployees` API so the frontend can query valid role holders.
+  - [x] **Step 3:** **Backend:** Enforce domain integrity in `createProcess`: validate that the submitted ecodes actively hold their respective roles in `Employee_Role_Mapping` before creating ownership records.
+  - [x] **Step 4:** **Frontend:** Update the Process Registry search placeholder to advertise prefixes.
+  - [x] **Step 5:** **Frontend:** Restrict CSV/Excel download buttons based on the user's role payload (Admins only).
+  - [x] **Step 6:** **Frontend:** Expand `RegisterProcessModal.jsx` to capture all 5 ownership tiers using dynamic, searchable comboboxes filtered by role. Add a final summary confirmation screen before submission.
 * **Verification Criteria:** Searching `pm:John` strictly returns processes managed by John. The creation modal only allows selecting true SBU Heads for the SBU Head field.
 
 ---

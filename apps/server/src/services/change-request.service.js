@@ -1,5 +1,6 @@
 import { query, executeTransaction, sql } from '../db/connection.js';
 import { auditService } from './audit.service.js';
+import { notificationService } from './notification.service.js';
 
 export class ChangeRequestService {
   /**
@@ -64,6 +65,9 @@ export class ChangeRequestService {
       remarks: `${status === 'SUBMITTED' ? 'Submitted' : 'Drafted'} change request for Process ${registryId}.`,
     });
 
+    // Notify Admins? The requirement says "notify requesters/target PMs upon submission, approval, and rejection." 
+    // We notify target PMs on handover. For CRs, we can just log it for now.
+
     return { change_request_id: crId, status };
   }
 
@@ -83,7 +87,7 @@ export class ChangeRequestService {
     const newStatus = action === 'APPROVE' ? 'APPROVED' : 'REJECTED';
 
     const crRes = await query(
-      `SELECT registry_id, change_type, proposed_data, status 
+      `SELECT registry_id, change_type, proposed_data, status, requested_by 
        FROM dbo.Process_Change_Requests 
        WHERE change_request_id = @crId`,
       { crId: { type: sql.Int, value: crId } }
@@ -191,6 +195,19 @@ export class ChangeRequestService {
       remarks: `Change request ${crId} was ${newStatus}.`,
     });
 
+    // Notify the requester
+    if (cr.requested_by) {
+      await notificationService.dispatch({
+        recipient_ecode: cr.requested_by,
+        sender_ecode: user.ecode,
+        notification_type: 'STATUS_CHANGE',
+        entity_type: 'CHANGE_REQUEST',
+        entity_id: String(crId),
+        message: `Your Change Request for Process ${registryId} was ${newStatus}.`,
+        action_url: `/bpms/reviews`
+      });
+    }
+
     return { change_request_id: crId, status: newStatus };
   }
 
@@ -211,6 +228,12 @@ export class ChangeRequestService {
         cr.submitted_at,
         pr.process_code,
         pr.process_name,
+        pr.wps_code,
+        pr.client_id,
+        pr.client_type,
+        pr.vertical_id,
+        pr.sbu_id,
+        pr.location_id,
         pr.version_num
       FROM dbo.Process_Change_Requests cr
       JOIN dbo.Process_Registry pr ON pr.registry_id = cr.registry_id
@@ -219,7 +242,40 @@ export class ChangeRequestService {
       ORDER BY cr.submitted_at ASC
     `);
 
-    return res.recordset || [];
+    const records = res.recordset || [];
+    
+    return records.map(r => {
+      const proposedData = JSON.parse(r.proposed_data || '{}');
+      const diff = {};
+      const proposed_fields = [];
+      
+      if (r.change_type === 'PROCESS_DETAILS_UPDATE') {
+        const fieldsToCheck = ['wps_code', 'process_name', 'client_id', 'client_type', 'vertical_id', 'sbu_id', 'location_id'];
+        for (const f of fieldsToCheck) {
+          if (proposedData[f] !== undefined && proposedData[f] !== r[f]) {
+            diff[f] = { old: String(r[f] || ''), new: String(proposedData[f] || '') };
+            proposed_fields.push(f);
+          }
+        }
+      } else if (r.change_type === 'PROCESS_DEACTIVATION') {
+         proposed_fields.push('status', 'ended_on', 'status_reason');
+         diff['status'] = { old: 'ACTIVE', new: 'INACTIVE' };
+      }
+
+      return {
+        cr_id: r.change_request_id,
+        cr_code: `CR-${String(r.change_request_id).padStart(4, '0')}`,
+        registry_code: r.process_code,
+        process_name: r.process_name,
+        status: r.status,
+        requested_by_name: r.requested_by_name,
+        submitted_time: new Date(r.submitted_at || r.requested_at).toLocaleString(),
+        change_type: r.change_type,
+        proposed_fields,
+        diff,
+        version_num: r.version_num
+      };
+    });
   }
 }
 

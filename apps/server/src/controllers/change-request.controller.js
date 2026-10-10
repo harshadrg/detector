@@ -1,6 +1,7 @@
 import { changeRequestService } from '../services/change-request.service.js';
-
 import { submitChangeRequestSchema } from '../schemas/change-request.schema.js';
+import { verifyPassword } from '../utils/crypto.js';
+import { query, sql } from '../db/connection.js';
 
 export async function submitChangeRequest(req, res) {
   try {
@@ -65,6 +66,41 @@ export async function reviewChangeRequest(req, res) {
         success: false,
         data: null,
         error: { code: 'VALIDATION_ERROR', message: 'action must be APPROVE or REJECT.', details: [] },
+      });
+    }
+
+    if (!data.password) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        error: { code: 'PASSWORD_REQUIRED', message: 'Password confirmation is required to approve or reject a change request.', details: [] },
+      });
+    }
+
+    const adminIdentity = await query(
+      `SELECT password_hash FROM dbo.Employee_Identities WHERE ecode = @ecode`,
+      { ecode: { type: sql.VarChar(20), value: req.user.ecode } }
+    );
+    const storedHash = adminIdentity.recordset?.[0]?.password_hash;
+    
+    if (!storedHash) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        error: { code: 'UNAUTHORIZED', message: 'Admin identity not found.', details: [] }
+      });
+    }
+
+    const isValid = await verifyPassword(data.password, storedHash);
+    if (!isValid) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        error: {
+          code: 'INVALID_PASSWORD',
+          message: 'Invalid password. Review aborted.',
+          details: [],
+        },
       });
     }
 

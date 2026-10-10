@@ -5,20 +5,13 @@ import {
   Download, 
   UploadCloud, 
   Filter, 
-  RefreshCw, 
-  ChevronRight, 
-  ChevronDown, 
-  AlertCircle, 
-  Check,
-  FileSpreadsheet,
-  XCircle,
-  Clock
+  RefreshCw,
+  FileSpreadsheet
 } from 'lucide-react';
 
 export function ExcelImport() {
-  const [expandedBatchId, setExpandedBatchId] = useState(null);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize] = useState(10);
 
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['import-batches', page, pageSize],
@@ -28,10 +21,6 @@ export function ExcelImport() {
 
   const batches = data?.batches || [];
   const meta = data?.meta || { page: 1, pageSize: 10, totalCount: 0, totalPages: 0 };
-
-  const toggleBatch = (batchId) => {
-    setExpandedBatchId(expandedBatchId === batchId ? null : batchId);
-  };
 
   const getStatusColor = (status) => {
     switch (status) {

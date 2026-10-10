@@ -21,8 +21,9 @@ import { RegisterProcessModal } from './RegisterProcessModal.jsx';
 export function ProcessRegistry() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { hasPermission } = useAuth();
+  const { hasPermission, roles } = useAuth();
   const canCreateProcess = hasPermission('BPMS.PROCESS.CREATE');
+  const isAdmin = roles.includes('PLATFORM_ADMIN') || roles.includes('MODULE_ADMIN');
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -286,15 +287,17 @@ export function ProcessRegistry() {
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <Button
-            variant="outline"
-            onClick={handleExportCSV}
-            icon={Download}
-            disabled={processes.length === 0}
-            className="text-xs"
-          >
-            Export CSV
-          </Button>
+          {isAdmin && (
+            <Button
+              variant="outline"
+              onClick={handleExportCSV}
+              icon={Download}
+              disabled={processes.length === 0}
+              className="text-xs"
+            >
+              Export CSV
+            </Button>
+          )}
 
           {canCreateProcess && (
             <Button
@@ -340,7 +343,7 @@ export function ProcessRegistry() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search process code, name, WPS code, client..."
+            placeholder="Search (e.g., pm:John, code:PRC, wps:123)..."
             className="w-full pl-9 pr-3 py-1.5 text-xs bg-surface-container-low/50 border border-outline-variant/40 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-on-surface placeholder:text-outline"
           />
         </form>

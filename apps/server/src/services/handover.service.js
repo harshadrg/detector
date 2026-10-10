@@ -1,5 +1,6 @@
 import { query, executeTransaction, sql } from '../db/connection.js';
 import { auditService } from './audit.service.js';
+import { notificationService } from './notification.service.js';
 
 export class HandoverService {
   /**
@@ -52,6 +53,26 @@ export class HandoverService {
       remarks: `Handover requested for process ${registryId} to PM ${to_pm_ecode} (${scenario}).`,
     });
 
+    // Notify target PM
+    await notificationService.dispatch({
+      recipient_ecode: to_pm_ecode,
+      sender_ecode: user.ecode,
+      notification_type: 'APPROVAL_REQUIRED',
+      entity_type: 'HANDOVER',
+      entity_id: String(handoverId),
+      message: `A PM handover request has been submitted for you to take over Process ${registryId}.`,
+      action_url: `/bpms/reviews`
+    });
+
+    // Auto-execute if requested by an Admin
+    const isAdmin = user.roles && (user.roles.includes('SUPER_ADMIN') || user.roles.includes('BPMS_ADMIN'));
+    if (isAdmin) {
+      return this.reviewHandover(user, handoverId, {
+        action: 'APPROVE',
+        review_remarks: 'Auto-approved by Administrator.'
+      }, actingContext);
+    }
+
     return { handover_id: handoverId, status: 'SUBMITTED' };
   }
 
@@ -68,7 +89,7 @@ export class HandoverService {
     }
 
     const hrRes = await query(
-      `SELECT registry_id, from_pm_ecode, to_pm_ecode, status, effective_date 
+      `SELECT registry_id, from_pm_ecode, to_pm_ecode, status, effective_date, requested_by 
        FROM dbo.Process_Handover_Requests 
        WHERE handover_id = @handoverId`,
       { handoverId: { type: sql.Int, value: handoverId } }
@@ -201,6 +222,19 @@ export class HandoverService {
       updated_data: { status: newStatus === 'APPROVED' ? 'EXECUTED' : 'REJECTED', review_remarks },
       remarks: `Handover request ${handoverId} was ${newStatus}.`,
     });
+
+    // Notify the requester
+    if (hr.requested_by) {
+      await notificationService.dispatch({
+        recipient_ecode: hr.requested_by,
+        sender_ecode: user.ecode,
+        notification_type: 'STATUS_CHANGE',
+        entity_type: 'HANDOVER',
+        entity_id: String(handoverId),
+        message: `Your handover request for Process ${hr.registry_id} was ${newStatus === 'APPROVED' ? 'EXECUTED' : 'REJECTED'}.`,
+        action_url: `/bpms/handovers/${handoverId}`
+      });
+    }
 
     return { handover_id: handoverId, status: newStatus === 'APPROVED' ? 'EXECUTED' : 'REJECTED' };
   }
