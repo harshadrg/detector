@@ -493,7 +493,11 @@ export class ImportService {
          raw_json,
          normalized_json,
          validation_errors_json,
-         is_valid
+         is_valid,
+         match_status,
+         existing_registry_id,
+         diff_summary_json,
+         is_confirmed
        FROM dbo.Import_Staging_Rows
        ${whereSql}
        ORDER BY row_number ASC
@@ -509,6 +513,10 @@ export class ImportService {
       raw: row.raw_json ? JSON.parse(row.raw_json) : {},
       normalized: row.normalized_json ? JSON.parse(row.normalized_json) : {},
       errors: row.validation_errors_json ? JSON.parse(row.validation_errors_json) : [],
+      match_status: row.match_status,
+      existing_registry_id: row.existing_registry_id,
+      diff_summary: row.diff_summary_json ? JSON.parse(row.diff_summary_json) : null,
+      is_confirmed: Boolean(row.is_confirmed),
     }));
 
     return {
@@ -531,7 +539,7 @@ export class ImportService {
    * @param {string|null} actingContext
    * @returns {Promise<{ committedCount: number, batchId: number }>}
    */
-  async commitBatch(batchId, committedBy, actingContext = null) {
+  async commitBatch(batchId, committedBy, actingContext = null, confirmedRowIds = []) {
     const batch = await this.getBatchById(batchId);
     if (!batch) {
       throw new Error(`Import batch ${batchId} was not found.`);
@@ -547,23 +555,25 @@ export class ImportService {
 
     // Retrieve all valid staged rows for this batch
     const validRowsResult = await query(
-      `SELECT row_number, normalized_json
+      `SELECT staging_row_id, row_number, normalized_json, match_status, existing_registry_id, diff_summary_json
        FROM dbo.Import_Staging_Rows
        WHERE batch_id = @batchId AND is_valid = 1
        ORDER BY row_number ASC`,
       { batchId: { type: sql.Int, value: batchId } }
     );
 
-    const validRows = validRowsResult.recordset || [];
+    let validRows = validRowsResult.recordset || [];
+    validRows = validRows.filter(r => confirmedRowIds.includes(r.staging_row_id));
+
     if (validRows.length === 0) {
-      throw new Error('No valid staged rows found in this batch.');
+      throw new Error('No confirmed valid rows to process.');
     }
 
-    // Execute atomic transactional commit
     const committedProcessCodes = [];
+    let newCount = 0;
+    let updateCount = 0;
 
     await executeTransaction(async (transaction) => {
-      // Query highest current process_code suffix to assign sequential canonical codes inside transaction to avoid collisions
       const maxCodeReq = new sql.Request(transaction);
       const maxCodeResult = await maxCodeReq.query(`
         SELECT TOP 1 process_code 
@@ -576,78 +586,133 @@ export class ImportService {
         const parts = maxCodeResult.recordset[0].process_code.split('-');
         currentCodeSeq = parseInt(parts[1], 10) || 0;
       }
+      
       for (const item of validRows) {
         const norm = JSON.parse(item.normalized_json);
 
-        currentCodeSeq++;
-        const processCode = `PRC-${String(currentCodeSeq).padStart(4, '0')}`;
+        if (item.match_status === 'NEW') {
+          currentCodeSeq++;
+          const processCode = `PRC-${String(currentCodeSeq).padStart(4, '0')}`;
 
-        // 1. Insert Process_Registry record
-        const insertProcReq = new sql.Request(transaction);
-        insertProcReq.input('process_code', sql.VarChar(30), processCode);
-        insertProcReq.input('wps_code', sql.VarChar(100), norm.wps_code || null);
-        insertProcReq.input('process_name', sql.NVarChar(200), norm.process_name || null);
-        insertProcReq.input('client_type', sql.VarChar(30), norm.client_type || null);
-        insertProcReq.input('vertical_id', sql.Int, norm.vertical_id);
-        insertProcReq.input('sbu_id', sql.Int, norm.sbu_id || null);
-        insertProcReq.input('status', sql.VarChar(30), norm.status || 'TRANSITION');
-        insertProcReq.input('status_reason', sql.NVarChar(255), norm.status_reason || null);
-        insertProcReq.input('created_by', sql.VarChar(20), committedBy);
+          const insertProcReq = new sql.Request(transaction);
+          insertProcReq.input('process_code', sql.VarChar(30), processCode);
+          insertProcReq.input('wps_code', sql.VarChar(100), norm.wps_code || null);
+          insertProcReq.input('process_name', sql.NVarChar(200), norm.process_name || null);
+          insertProcReq.input('client_type', sql.VarChar(30), norm.client_type || null);
+          insertProcReq.input('vertical_id', sql.Int, norm.vertical_id);
+          insertProcReq.input('sbu_id', sql.Int, norm.sbu_id || null);
+          insertProcReq.input('status', sql.VarChar(30), norm.status || 'TRANSITION');
+          insertProcReq.input('status_reason', sql.NVarChar(255), norm.status_reason || null);
+          insertProcReq.input('created_by', sql.VarChar(20), committedBy);
 
-        const procResult = await insertProcReq.query(`
-          INSERT INTO dbo.Process_Registry (
-            process_code, wps_code, process_name, client_type, vertical_id, sbu_id, status, status_reason, version_num, created_by
-          )
-          OUTPUT INSERTED.registry_id
-          VALUES (
-            @process_code, @wps_code, @process_name, @client_type, @vertical_id, @sbu_id, @status, @status_reason, 1, @created_by
-          )
-        `);
-
-        const registryId = procResult.recordset[0].registry_id;
-        committedProcessCodes.push(processCode);
-
-        // 2. Insert 5-tier Hierarchy in Process_Ownership
-        const ownershipRoles = [
-          { role: 'OPS_QUALITY_HEAD', ecode: norm.ops_head_ecode },
-          { role: 'CBO', ecode: norm.cbo_ecode },
-          { role: 'SBU_HEAD', ecode: norm.sbu_head_ecode },
-          { role: 'ACCOUNT_HEAD', ecode: norm.account_head_ecode },
-          { role: 'PM', ecode: norm.pm_ecode },
-        ];
-
-        for (const owner of ownershipRoles) {
-          if (!owner.ecode) continue;
-
-          const insertOwnerReq = new sql.Request(transaction);
-          insertOwnerReq.input('registry_id', sql.Int, registryId);
-          insertOwnerReq.input('role_type', sql.VarChar(30), owner.role);
-          insertOwnerReq.input('employee_ecode', sql.VarChar(20), owner.ecode);
-          insertOwnerReq.input('assigned_by', sql.VarChar(20), committedBy);
-
-          await insertOwnerReq.query(`
-            INSERT INTO dbo.Process_Ownership (
-              registry_id, role_type, employee_ecode, effective_from, is_current, assigned_by, source_type, reason
-            )
-            VALUES (
-              @registry_id, @role_type, @employee_ecode, SYSUTCDATETIME(), 1, @assigned_by, 'INITIAL_MIGRATION', 'Batch spreadsheet initial ingestion'
+          const procResult = await insertProcReq.query(`
+            INSERT INTO dbo.Process_Registry (
+              process_code, wps_code, process_name, client_type, vertical_id, sbu_id, status, status_reason, version_num, created_by
+            ) OUTPUT INSERTED.registry_id VALUES (
+              @process_code, @wps_code, @process_name, @client_type, @vertical_id, @sbu_id, @status, @status_reason, 1, @created_by
             )
           `);
+
+          const registryId = procResult.recordset[0].registry_id;
+          committedProcessCodes.push(processCode);
+          newCount++;
+
+          const ownershipRoles = [
+            { role: 'OPS_QUALITY_HEAD', ecode: norm.ops_head_ecode },
+            { role: 'CBO', ecode: norm.cbo_ecode },
+            { role: 'SBU_HEAD', ecode: norm.sbu_head_ecode },
+            { role: 'ACCOUNT_HEAD', ecode: norm.account_head_ecode },
+            { role: 'PM', ecode: norm.pm_ecode },
+          ];
+
+          for (const owner of ownershipRoles) {
+            if (!owner.ecode) continue;
+            const insertOwnerReq = new sql.Request(transaction);
+            insertOwnerReq.input('registry_id', sql.Int, registryId);
+            insertOwnerReq.input('role_type', sql.VarChar(30), owner.role);
+            insertOwnerReq.input('employee_ecode', sql.VarChar(20), owner.ecode);
+            insertOwnerReq.input('assigned_by', sql.VarChar(20), committedBy);
+            await insertOwnerReq.query(`
+              INSERT INTO dbo.Process_Ownership (
+                registry_id, role_type, employee_ecode, effective_from, is_current, assigned_by, source_type, reason
+              ) VALUES (
+                @registry_id, @role_type, @employee_ecode, SYSUTCDATETIME(), 1, @assigned_by, 'INITIAL_MIGRATION', 'Batch spreadsheet initial ingestion'
+              )
+            `);
+          }
+        } else if (item.match_status === 'DIFFERENCE' && item.existing_registry_id) {
+          const updateProcReq = new sql.Request(transaction);
+          updateProcReq.input('registry_id', sql.Int, item.existing_registry_id);
+          updateProcReq.input('wps_code', sql.VarChar(100), norm.wps_code || null);
+          updateProcReq.input('process_name', sql.NVarChar(200), norm.process_name || null);
+          updateProcReq.input('client_type', sql.VarChar(30), norm.client_type || null);
+          updateProcReq.input('vertical_id', sql.Int, norm.vertical_id);
+          updateProcReq.input('sbu_id', sql.Int, norm.sbu_id || null);
+          updateProcReq.input('status', sql.VarChar(30), norm.status || 'TRANSITION');
+          updateProcReq.input('status_reason', sql.NVarChar(255), norm.status_reason || null);
+          await updateProcReq.query(`
+            UPDATE dbo.Process_Registry SET
+              wps_code = @wps_code, process_name = @process_name, client_type = @client_type,
+              vertical_id = @vertical_id, sbu_id = @sbu_id, status = @status, status_reason = @status_reason
+            WHERE registry_id = @registry_id
+          `);
+
+          const diffs = item.diff_summary_json ? JSON.parse(item.diff_summary_json) : [];
+          const ownershipRolesMap = {
+            'ops_head': 'OPS_QUALITY_HEAD',
+            'cbo': 'CBO',
+            'sbu_head': 'SBU_HEAD',
+            'account_head': 'ACCOUNT_HEAD',
+            'pm': 'PM'
+          };
+
+          for (const diff of diffs) {
+            const role = ownershipRolesMap[diff.field];
+            if (role) {
+              if (diff.old) {
+                const deactReq = new sql.Request(transaction);
+                deactReq.input('registry_id', sql.Int, item.existing_registry_id);
+                deactReq.input('role_type', sql.VarChar(30), role);
+                deactReq.input('emp', sql.VarChar(20), diff.old);
+                await deactReq.query(`
+                  UPDATE dbo.Process_Ownership SET is_current = 0, effective_to = SYSUTCDATETIME()
+                  WHERE registry_id = @registry_id AND role_type = @role_type AND employee_ecode = @emp AND is_current = 1
+                `);
+              }
+              if (diff.new) {
+                const insReq = new sql.Request(transaction);
+                insReq.input('registry_id', sql.Int, item.existing_registry_id);
+                insReq.input('role_type', sql.VarChar(30), role);
+                insReq.input('emp', sql.VarChar(20), diff.new);
+                insReq.input('assigned_by', sql.VarChar(20), committedBy);
+                await insReq.query(`
+                  INSERT INTO dbo.Process_Ownership (
+                    registry_id, role_type, employee_ecode, effective_from, is_current, assigned_by, source_type, reason
+                  ) VALUES (
+                    @registry_id, @role_type, @emp, SYSUTCDATETIME(), 1, @assigned_by, 'IMPORT_UPDATE', 'Batch spreadsheet update'
+                  )
+                `);
+              }
+            }
+          }
+          updateCount++;
         }
+        
+        // Mark row as confirmed
+        const confReq = new sql.Request(transaction);
+        confReq.input('staging_row_id', sql.Int, item.staging_row_id);
+        await confReq.query('UPDATE dbo.Import_Staging_Rows SET is_confirmed = 1 WHERE staging_row_id = @staging_row_id');
       }
 
-      // 3. Mark Batch as COMMITTED
       const updateBatchReq = new sql.Request(transaction);
       updateBatchReq.input('batch_id', sql.Int, batchId);
       await updateBatchReq.query(`
         UPDATE dbo.Import_Batches
-        SET status = 'COMMITTED',
-            committed_at = SYSUTCDATETIME()
+        SET status = 'COMMITTED', committed_at = SYSUTCDATETIME()
         WHERE batch_id = @batch_id
       `);
     });
 
-    // 4. Log Audit Event
     await auditService.logEvent({
       module_code: 'BPMS',
       entity_type: 'IMPORT_BATCH',
@@ -660,26 +725,27 @@ export class ImportService {
         batch_id: batchId,
         status: 'COMMITTED',
         committed_rows: validRows.length,
-        created_processes: committedProcessCodes,
+        new_processes: newCount,
+        updated_processes: updateCount
       },
-      remarks: `Committed ${validRows.length} processes from batch ${batchId} into live registry.`,
+      remarks: `Committed ${validRows.length} confirmed processes (${newCount} new, ${updateCount} updated) from batch ${batchId}.`,
     });
 
-    // 5. Dispatch Notification
     await notificationService.dispatch({
       recipient_ecode: committedBy,
       sender_ecode: null,
       notification_type: 'STATUS_CHANGE',
       entity_type: 'IMPORT_BATCH',
       entity_id: String(batchId),
-      message: `Batch ${batchId} (${batch.file_name}) successfully committed. ${validRows.length} processes migrated to live registry.`,
+      message: `Batch ${batchId} successfully committed (${newCount} new, ${updateCount} updated).`,
       action_url: '/bpms/processes',
     });
 
     return {
       batchId,
       committedCount: validRows.length,
-      sampleProcessCodes: committedProcessCodes.slice(0, 5),
+      newCount,
+      updateCount
     };
   }
 }

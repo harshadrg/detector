@@ -371,9 +371,13 @@ export const importApi = {
       method: 'GET',
     });
   },
-  commitBatch: async (batchId) => {
+  commitBatch: async (batchId, payload) => {
     return apiFetch(`/api/modules/bpms/imports/${encodeURIComponent(batchId)}/commit`, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
     });
   },
 };

@@ -225,9 +225,18 @@ BEGIN
         normalized_json NVARCHAR(MAX) NULL,
         validation_errors_json NVARCHAR(MAX) NULL,
         is_valid BIT NOT NULL CONSTRAINT DF_ImportStagingRows_is_valid DEFAULT 0,
+        
+        -- Phase 7 additions for Diff & Compare
+        match_status VARCHAR(20) NULL, -- 'NEW', 'EXISTING_EXACT', 'DIFFERENCE'
+        existing_registry_id INT NULL,
+        diff_summary_json NVARCHAR(MAX) NULL,
+        is_confirmed BIT NOT NULL CONSTRAINT DF_ImportStagingRows_is_confirmed DEFAULT 0,
+
         CONSTRAINT PK_ImportStagingRows PRIMARY KEY CLUSTERED (staging_row_id),
         CONSTRAINT FK_ImportStagingRows_Batch FOREIGN KEY (batch_id)
-            REFERENCES dbo.Import_Batches (batch_id) ON DELETE CASCADE
+            REFERENCES dbo.Import_Batches (batch_id) ON DELETE CASCADE,
+        CONSTRAINT FK_ImportStagingRows_Registry FOREIGN KEY (existing_registry_id)
+            REFERENCES dbo.Process_Registry (registry_id) ON DELETE SET NULL
     );
 END;
 GO

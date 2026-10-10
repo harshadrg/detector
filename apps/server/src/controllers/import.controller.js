@@ -176,6 +176,9 @@ export async function getStagedRows(req, res) {
   }
 }
 
+import { hashPassword, verifyPassword } from '../utils/crypto.js';
+import { query, sql } from '../db/connection.js';
+
 export async function commitBatch(req, res) {
   try {
     const batchId = parseInt(req.params.batchId, 10);
@@ -191,10 +194,52 @@ export async function commitBatch(req, res) {
       });
     }
 
+    const { password, confirmed_row_ids } = req.body;
+
+    if (!password) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        error: { code: 'VALIDATION_ERROR', message: 'Password is required to commit batch.', details: [] }
+      });
+    }
+
+    if (!Array.isArray(confirmed_row_ids) || confirmed_row_ids.length === 0) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        error: { code: 'VALIDATION_ERROR', message: 'No confirmed rows provided.', details: [] }
+      });
+    }
+
+    // Verify Password
+    const adminEcode = req.user.ecode;
+    const adminResult = await query('SELECT password_hash FROM dbo.Employees WHERE ecode = @ecode', {
+      ecode: { type: sql.VarChar(20), value: adminEcode }
+    });
+    const storedHash = adminResult.recordset?.[0]?.password_hash;
+    
+    if (!storedHash) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        error: { code: 'UNAUTHORIZED', message: 'Admin identity not found.', details: [] }
+      });
+    }
+
+    const isValid = await verifyPassword(password, storedHash);
+    if (!isValid) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        error: { code: 'UNAUTHORIZED', message: 'Invalid administrator password.', details: [] }
+      });
+    }
+
     const committedBy = req.user.ecode;
     const actingContext = req.user.acting_context || null;
 
-    const result = await importService.commitBatch(batchId, committedBy, actingContext);
+    const result = await importService.commitBatch(batchId, committedBy, actingContext, confirmed_row_ids);
 
     return res.status(200).json({
       success: true,
