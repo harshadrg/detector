@@ -54,7 +54,7 @@ class AuthorizationService {
 
     const hierarchyRoles = ['OPS_QUALITY_HEAD', 'CBO', 'SBU_HEAD', 'ACCOUNT_HEAD'];
     const hasHierarchyRole = roleCodes.some((r) => hierarchyRoles.includes(r));
-    const hasPMRole = roleCodes.includes('PM');
+    const hasPMRole = roleCodes.includes('PROJECT_MANAGER') || roleCodes.includes('PM');
 
     if (permissionCode === 'BPMS.PROCESS.VIEW' || permissionCode === 'BPMS.AUDIT.VIEW') {
       if (hasHierarchyRole) return 'OWN_HIERARCHY';
@@ -114,12 +114,13 @@ class AuthorizationService {
     }
 
     // 2. Change Request Draft / Submit (Active or Transition processes)
+    // Separation of Duties: strictly the assigned PM of this process can initiate operational change requests
     if (['ACTIVE', 'TRANSITION', 'DRAFT'].includes(process.status)) {
       if (this.hasPermission(user, 'BPMS.CHANGE_REQUEST.DRAFT')) {
-        if (isGlobal || isPM) capabilities.push('BPMS.CHANGE_REQUEST.DRAFT');
+        if (isPM) capabilities.push('BPMS.CHANGE_REQUEST.DRAFT');
       }
       if (this.hasPermission(user, 'BPMS.CHANGE_REQUEST.SUBMIT')) {
-        if (isGlobal || isPM) capabilities.push('BPMS.CHANGE_REQUEST.SUBMIT');
+        if (isPM) capabilities.push('BPMS.CHANGE_REQUEST.SUBMIT');
       }
     }
 
@@ -132,8 +133,9 @@ class AuthorizationService {
     }
 
     // 4. Handover Requests
+    // Separation of Duties: strictly the assigned PM or their Account Head / SBU Head can request handover
     if (this.hasPermission(user, 'BPMS.HANDOVER.REQUEST')) {
-      if (isGlobal || isPM || isAccountOrSbuHead) {
+      if (isPM || isAccountOrSbuHead) {
         capabilities.push('BPMS.HANDOVER.REQUEST');
       }
     }
@@ -142,9 +144,10 @@ class AuthorizationService {
     }
 
     // 5. Deactivation Requests
+    // Separation of Duties: strictly the assigned PM or their Account Head / SBU Head can request deactivation
     if (process.status !== 'INACTIVE' && process.status !== 'ARCHIVED') {
       if (this.hasPermission(user, 'BPMS.PROCESS.DEACTIVATE_REQUEST')) {
-        if (isGlobal || isPM || isAccountOrSbuHead) {
+        if (isPM || isAccountOrSbuHead) {
           capabilities.push('BPMS.PROCESS.DEACTIVATE_REQUEST');
         }
       }

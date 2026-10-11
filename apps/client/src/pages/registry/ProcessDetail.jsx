@@ -408,21 +408,24 @@ export function ProcessDetail() {
               <span>Process Details</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => {
-                initChangeForm();
-                setActiveTab('change-request');
-              }}
-              className={`pb-3 px-1 inline-flex items-center gap-2 border-b-2 font-medium transition-colors cursor-pointer ${
-                activeTab === 'change-request'
-                  ? 'border-primary text-primary font-semibold'
-                  : 'border-transparent text-on-surface-variant hover:text-on-surface'
-              }`}
-            >
-              <SlidersHorizontal className="w-4 h-4" />
-              <span>Change Request</span>
-            </button>
+            {(capabilities.includes('BPMS.CHANGE_REQUEST.DRAFT') ||
+              capabilities.includes('BPMS.CHANGE_REQUEST.SUBMIT')) && (
+              <button
+                type="button"
+                onClick={() => {
+                  initChangeForm();
+                  setActiveTab('change-request');
+                }}
+                className={`pb-3 px-1 inline-flex items-center gap-2 border-b-2 font-medium transition-colors cursor-pointer ${
+                  activeTab === 'change-request'
+                    ? 'border-primary text-primary font-semibold'
+                    : 'border-transparent text-on-surface-variant hover:text-on-surface'
+                }`}
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+                <span>Change Request</span>
+              </button>
+            )}
 
             <button
               type="button"

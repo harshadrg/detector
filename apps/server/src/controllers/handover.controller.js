@@ -37,7 +37,8 @@ export async function requestHandover(req, res) {
       error: null,
     });
   } catch (error) {
-    return res.status(500).json({
+    const statusCode = error.code === 'FORBIDDEN_SCOPE' ? 403 : 500;
+    return res.status(statusCode).json({
       success: false,
       data: null,
       error: {

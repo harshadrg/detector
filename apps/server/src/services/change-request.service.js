@@ -24,6 +24,35 @@ export class ChangeRequestService {
       throw err;
     }
 
+    // Enforce Separation of Duties / ABAC Scope:
+    // Only assigned operational owners can request changes:
+    // For deactivations: PM, ACCOUNT_HEAD, or SBU_HEAD.
+    // For process attribute changes: PM only.
+    const ownersRes = await query(
+      `SELECT role_type, employee_ecode FROM dbo.Process_Ownership 
+       WHERE registry_id = @registryId AND is_current = 1`,
+      { registryId: { type: sql.Int, value: registryId } }
+    );
+    const owners = ownersRes.recordset || [];
+    const isPM = owners.some((o) => o.role_type === 'PM' && o.employee_ecode === user.ecode);
+    const isAccountOrSbuHead = owners.some(
+      (o) => (o.role_type === 'ACCOUNT_HEAD' || o.role_type === 'SBU_HEAD') && o.employee_ecode === user.ecode
+    );
+
+    const isAuthorized = data.change_type === 'PROCESS_DEACTIVATION' 
+      ? (isPM || isAccountOrSbuHead)
+      : isPM;
+
+    if (!isAuthorized) {
+      const err = new Error(
+        data.change_type === 'PROCESS_DEACTIVATION'
+          ? 'Only the assigned Project Manager, Account Head, or SBU Head can request process deactivation.'
+          : 'Only the assigned Project Manager can draft or submit change requests for this process.'
+      );
+      err.code = 'FORBIDDEN_SCOPE';
+      throw err;
+    }
+
     // Determine status based on action
     const status = data.action === 'SUBMIT' ? 'SUBMITTED' : 'DRAFT';
     const submittedAt = status === 'SUBMITTED' ? 'SYSUTCDATETIME()' : 'NULL';

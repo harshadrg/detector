@@ -37,7 +37,8 @@ export async function submitChangeRequest(req, res) {
       error: null,
     });
   } catch (error) {
-    return res.status(error.code === 'CONCURRENCY_ERROR' ? 409 : 500).json({
+    const statusCode = error.code === 'CONCURRENCY_ERROR' ? 409 : (error.code === 'FORBIDDEN_SCOPE' ? 403 : 500);
+    return res.status(statusCode).json({
       success: false,
       data: null,
       error: {
