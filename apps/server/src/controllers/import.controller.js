@@ -213,7 +213,7 @@ export async function commitBatch(req, res) {
 
     // Verify Password
     const adminEcode = req.user.ecode;
-    const adminResult = await query('SELECT password_hash FROM dbo.Employees WHERE ecode = @ecode', {
+    const adminResult = await query('SELECT password_hash FROM dbo.Employee_Identities WHERE ecode = @ecode', {
       ecode: { type: sql.VarChar(20), value: adminEcode }
     });
     const storedHash = adminResult.recordset?.[0]?.password_hash;

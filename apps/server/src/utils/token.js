@@ -1,6 +1,14 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev_insecure_jwt_secret_detector_2026';
+const DEV_FALLBACK_SECRET = 'dev_insecure_jwt_secret_detector_2026';
+
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET === DEV_FALLBACK_SECRET) {
+    throw new Error('FATAL SECURITY ERROR: JWT_SECRET environment variable must be set to a secure secret in production mode.');
+  }
+}
+
+const JWT_SECRET = process.env.JWT_SECRET || DEV_FALLBACK_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1d';
 
 /**
