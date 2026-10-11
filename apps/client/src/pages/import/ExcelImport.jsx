@@ -6,15 +6,10 @@ import {
   UploadCloud, 
   Filter, 
   RefreshCw,
-  FileSpreadsheet,
   CheckCircle,
   AlertCircle,
-  Clock,
   ChevronDown,
   ChevronRight,
-  Eye,
-  Check,
-  XCircle,
   Lock
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';

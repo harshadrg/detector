@@ -1,4 +1,6 @@
 import { importService } from '../services/import.service.js';
+import { verifyPassword } from '../utils/crypto.js';
+import { query, sql } from '../db/connection.js';
 
 export async function stageExcelUpload(req, res) {
   try {
@@ -175,9 +177,6 @@ export async function getStagedRows(req, res) {
     });
   }
 }
-
-import { hashPassword, verifyPassword } from '../utils/crypto.js';
-import { query, sql } from '../db/connection.js';
 
 export async function commitBatch(req, res) {
   try {
