@@ -49,7 +49,7 @@ export function AuditLedger() {
     setPage(1);
   };
 
-  const handleExport = (format) => {
+  const handleExport = async (format) => {
     setExportOpen(false);
     
     // Construct export URL
@@ -62,12 +62,25 @@ export function AuditLedger() {
     
     const url = `/api/core/audit/export?${params.toString()}`;
     
-    // Trigger download
-    const link = document.createElement('a');
-    link.href = url;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      const res = await fetch(url, { credentials: 'include' });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        alert(errorData?.error?.message || 'Failed to export audit events.');
+        return;
+      }
+      const blob = await res.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `audit-export-${new Date().toISOString().slice(0, 10)}.${format}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch {
+      alert('Failed to export audit events.');
+    }
   };
 
   const { data, isLoading, refetch } = useQuery({

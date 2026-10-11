@@ -30,7 +30,7 @@ function BatchDetails({ batch, onClose }) {
     queryKey: ['batch-rows', batch.batch_id, filter],
     queryFn: async () => {
       const res = await importApi.getStagedRows(batch.batch_id, { page: 1, pageSize: 1000, filter });
-      return res.data;
+      return res?.rows ? res : (res?.data || res);
     }
   });
 
@@ -224,7 +224,7 @@ export function ExcelImport() {
     queryKey: ['import-batches', page, pageSize],
     queryFn: async () => {
       const res = await importApi.listBatches({ page, pageSize });
-      return res.data;
+      return res?.batches ? res : (res?.data || res);
     },
     keepPreviousData: true
   });

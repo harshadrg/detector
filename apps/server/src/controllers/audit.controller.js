@@ -1,4 +1,6 @@
-import { queryAuditSchema } from '../schemas/audit.schema.js';
+import writeXlsxFile from 'write-excel-file/node';
+import PDFDocument from 'pdfkit';
+import { queryAuditSchema, exportAuditSchema } from '../schemas/audit.schema.js';
 import { auditService } from '../services/audit.service.js';
 import { authorizationService } from '../services/authorization.service.js';
 
@@ -65,10 +67,6 @@ export async function getAuditEvents(req, res) {
     });
   }
 }
-
-import writeXlsxFile from 'write-excel-file/node';
-import PDFDocument from 'pdfkit';
-import { exportAuditSchema } from '../schemas/audit.schema.js';
 
 export async function exportAuditEvents(req, res) {
   try {
@@ -139,19 +137,32 @@ export async function exportAuditEvents(req, res) {
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}.xlsx"`);
       
-      const schema = [
-        { column: 'Event ID', type: Number, value: e => e.event_id },
-        { column: 'Timestamp', type: Date, format: 'yyyy-mm-dd hh:mm:ss', value: e => new Date(e.created_at) },
-        { column: 'Module', type: String, value: e => e.module_code },
-        { column: 'Entity Type', type: String, value: e => e.entity_type },
-        { column: 'Entity ID', type: String, value: e => String(e.entity_id) },
-        { column: 'Action', type: String, value: e => e.action },
-        { column: 'Performed By', type: String, value: e => String(e.performed_by) },
-        { column: 'Context', type: String, value: e => e.acting_context || 'SELF' },
-        { column: 'Remarks', type: String, value: e => e.remarks || '' }
+      const sheetData = [
+        [
+          { value: 'Event ID', fontWeight: 'bold' },
+          { value: 'Timestamp', fontWeight: 'bold' },
+          { value: 'Module', fontWeight: 'bold' },
+          { value: 'Entity Type', fontWeight: 'bold' },
+          { value: 'Entity ID', fontWeight: 'bold' },
+          { value: 'Action', fontWeight: 'bold' },
+          { value: 'Performed By', fontWeight: 'bold' },
+          { value: 'Context', fontWeight: 'bold' },
+          { value: 'Remarks', fontWeight: 'bold' }
+        ],
+        ...events.map(e => [
+          { value: Number(e.event_id), type: Number },
+          { value: new Date(e.created_at), type: Date, format: 'yyyy-mm-dd hh:mm:ss' },
+          { value: String(e.module_code || ''), type: String },
+          { value: String(e.entity_type || ''), type: String },
+          { value: String(e.entity_id || ''), type: String },
+          { value: String(e.action || ''), type: String },
+          { value: String(e.performed_by || ''), type: String },
+          { value: String(e.acting_context || 'SELF'), type: String },
+          { value: String(e.remarks || ''), type: String }
+        ])
       ];
       
-      const buffer = await writeXlsxFile(events, { schema });
+      const buffer = await writeXlsxFile(sheetData).toBuffer();
       return res.send(buffer);
     }
     

@@ -44,9 +44,9 @@ export function ReviewQueue() {
   const reviews = data?.reviews || [];
   
   const changeRequests = reviews.filter(r => r.change_type !== 'PROCESS_DEACTIVATION');
-  // const deactivationRequests = reviews.filter(r => r.change_type === 'PROCESS_DEACTIVATION');
+  const deactivationRequests = reviews.filter(r => r.change_type === 'PROCESS_DEACTIVATION');
 
-  const displayItems = changeRequests;
+  const displayItems = activeTab === 'changeRequests' ? changeRequests : deactivationRequests;
 
   const reviewMutation = useMutation({
     mutationFn: ({ crId, action, remarks, password }) => 
@@ -85,7 +85,7 @@ export function ReviewQueue() {
     });
   };
 
-  const currentTabItems = activeTab === 'changeRequests' ? displayItems : [];
+  const currentTabItems = displayItems;
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto py-6 px-8">
@@ -95,7 +95,7 @@ export function ReviewQueue() {
           <div className="flex items-center gap-3">
             <h1 className="font-headline font-bold text-2xl text-on-surface tracking-tight">Review Queue</h1>
             <span className="bg-secondary-container text-on-secondary-container text-xs font-semibold px-2.5 py-0.5 rounded-full border border-outline-variant/30">
-              {displayItems.length} Action Items
+              {reviews.length} Action Items
             </span>
           </div>
           <p className="text-sm text-on-surface-variant mt-1 font-body">
@@ -132,7 +132,7 @@ export function ReviewQueue() {
           >
             <span>Change Requests</span>
             <span className={activeTab === 'changeRequests' ? 'bg-surface/20 px-1.5 py-0.5 rounded-full text-[10px]' : 'bg-surface-container px-1.5 py-0.5 rounded-full text-[10px]'}>
-              {displayItems.length}
+              {changeRequests.length}
             </span>
           </button>
           <button 
@@ -145,7 +145,7 @@ export function ReviewQueue() {
           >
             <span>Deactivation Requests</span>
             <span className={activeTab === 'deactivationRequests' ? 'bg-surface/20 px-1.5 py-0.5 rounded-full text-[10px]' : 'bg-surface-container px-1.5 py-0.5 rounded-full text-[10px]'}>
-              1
+              {deactivationRequests.length}
             </span>
           </button>
         </div>
