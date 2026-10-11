@@ -28,6 +28,7 @@ export function AuditLedger() {
   });
   const [appliedFilters, setAppliedFilters] = useState(filters);
   const [exportOpen, setExportOpen] = useState(false);
+  const [isLiveStream, setIsLiveStream] = useState(false);
 
   const toggleRow = (id) => {
     setExpandedRow(expandedRow === id ? null : id);
@@ -87,6 +88,7 @@ export function AuditLedger() {
     queryKey: ['audit-events', page, pageSize, appliedFilters],
     queryFn: () => auditApi.getEvents({ page, pageSize, ...appliedFilters }),
     keepPreviousData: true,
+    refetchInterval: isLiveStream ? 4000 : false,
   });
 
   const events = data?.events || [];
@@ -126,9 +128,26 @@ export function AuditLedger() {
         </div>
         {/* Top-Right Actions */}
         <div className="flex items-center gap-2.5 flex-wrap">
-          <button className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-on-surface-variant bg-surface-container hover:bg-surface-container-high rounded-lg border border-outline-variant transition-colors shadow-sm">
-            <PauseCircle className="w-4 h-4 text-amber-600" />
-            <span>Live Stream: Paused</span>
+          <button 
+            type="button"
+            onClick={() => setIsLiveStream(!isLiveStream)}
+            className={`inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors shadow-sm cursor-pointer ${
+              isLiveStream 
+                ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30' 
+                : 'text-on-surface-variant bg-surface-container hover:bg-surface-container-high border-outline-variant'
+            }`}
+          >
+            {isLiveStream ? (
+              <>
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Live Stream: Active</span>
+              </>
+            ) : (
+              <>
+                <PauseCircle className="w-4 h-4 text-amber-600" />
+                <span>Live Stream: Paused</span>
+              </>
+            )}
           </button>
           <button onClick={() => refetch()} className="p-1.5 text-on-surface-variant hover:text-on-surface bg-surface-container hover:bg-surface-container-high rounded-lg border border-outline-variant transition-colors" title="Force Refresh">
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />

@@ -184,7 +184,7 @@ export function OperationalOverview() {
           </div>
           <div className="mt-2 flex items-center justify-between text-[11px] text-on-surface-variant">
             <span>Change requests in queue</span>
-            <Link to="/registry" className="text-primary hover:underline font-medium inline-flex items-center gap-0.5">
+            <Link to="/reviews" className="text-primary hover:underline font-medium inline-flex items-center gap-0.5">
               <span>View</span>
               <ArrowRight className="w-3 h-3" />
             </Link>

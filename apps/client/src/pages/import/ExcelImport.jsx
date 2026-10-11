@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { importApi } from '../../lib/api';
 import { 
@@ -216,9 +216,13 @@ function BatchDetails({ batch, onClose }) {
 }
 
 export function ExcelImport() {
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef(null);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [expandedBatchId, setExpandedBatchId] = useState(null);
+  const [uploadError, setUploadError] = useState(null);
+  const [uploadSuccess, setUploadSuccess] = useState(null);
 
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['import-batches', page, pageSize],
@@ -228,6 +232,88 @@ export function ExcelImport() {
     },
     keepPreviousData: true
   });
+
+  const uploadMutation = useMutation({
+    mutationFn: async (file) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      return await importApi.stageUpload(formData);
+    },
+    onSuccess: (res) => {
+      queryClient.invalidateQueries(['import-batches']);
+      setUploadError(null);
+      setUploadSuccess(`File staged successfully. Batch #${res?.batch_id || ''} created with ${res?.valid_rows || 0} valid row(s).`);
+      if (res?.batch_id) {
+        setExpandedBatchId(res.batch_id);
+      }
+      setTimeout(() => setUploadSuccess(null), 7000);
+    },
+    onError: (err) => {
+      setUploadError(err.message || 'Failed to stage spreadsheet.');
+      setUploadSuccess(null);
+    }
+  });
+
+  const handleDownloadTemplate = () => {
+    const headers = [
+      'wps_code',
+      'process_name',
+      'client_name',
+      'client_type',
+      'vertical_code',
+      'sbu_code',
+      'facility_name',
+      'city',
+      'state',
+      'pm_ecode',
+      'sbu_head_ecode',
+      'account_head_ecode',
+      'cbo_ecode',
+      'ops_head_ecode',
+      'started_on'
+    ];
+    const sampleRow = [
+      'WPS-BFSI-001',
+      'Retail Banking Operations',
+      'Acme Bank',
+      'DOMESTIC',
+      'BFSI',
+      'BFSI-RETAIL',
+      'Mumbai DC',
+      'Mumbai',
+      'Maharashtra',
+      'EMP001',
+      'EMP002',
+      'EMP003',
+      'EMP004',
+      'EMP005',
+      '2026-01-01'
+    ];
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), sampleRow.join(',')].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', 'detector_process_import_template.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      uploadMutation.mutate(file);
+      e.target.value = '';
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      uploadMutation.mutate(file);
+    }
+  };
 
   const batches = data?.batches || [];
   const meta = data?.meta || { page: 1, pageSize: 10, totalCount: 0, totalPages: 0 };
@@ -248,28 +334,69 @@ export function ExcelImport() {
 
   return (
     <main className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8 animate-in fade-in duration-300">
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleFileSelect} 
+        accept=".xlsx,.xls" 
+        className="hidden" 
+      />
+
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-on-surface">Data Pipeline</h1>
           <p className="text-sm text-on-surface-variant mt-1.5">Import, validate, and manage batch data ingestion securely.</p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="flex items-center px-4 py-2 bg-surface-container-lowest hover:bg-surface-container border border-outline-variant text-on-surface text-xs font-semibold rounded-lg shadow-sm transition-colors duration-150">
+          <button 
+            type="button"
+            onClick={handleDownloadTemplate}
+            className="flex items-center px-4 py-2 bg-surface-container-lowest hover:bg-surface-container border border-outline-variant text-on-surface text-xs font-semibold rounded-lg shadow-sm transition-colors duration-150 cursor-pointer"
+          >
             <Download className="w-4 h-4 mr-2 text-primary" />
             Download Template
           </button>
         </div>
       </div>
 
+      {uploadSuccess && (
+        <div role="status" className="p-3.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 dark:text-emerald-300 flex items-center gap-2 text-xs font-medium">
+          <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>{uploadSuccess}</span>
+        </div>
+      )}
+
+      {uploadError && (
+        <div role="alert" className="p-3.5 rounded-lg bg-error/10 border border-error/20 text-error flex items-center gap-2 text-xs font-medium">
+          <AlertCircle className="w-4 h-4 text-error shrink-0" />
+          <span>{uploadError}</span>
+        </div>
+      )}
+
       <section aria-labelledby="upload-zone-heading">
-        <div className="border-2 border-dashed border-outline-variant hover:border-primary bg-surface-container-lowest hover:bg-surface-container-low transition-colors duration-200 rounded-xl p-8 flex flex-col items-center justify-center text-center group cursor-pointer">
+        <div 
+          onClick={() => fileInputRef.current?.click()}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={handleDrop}
+          className="border-2 border-dashed border-outline-variant hover:border-primary bg-surface-container-lowest hover:bg-surface-container-low transition-colors duration-200 rounded-xl p-8 flex flex-col items-center justify-center text-center group cursor-pointer"
+        >
           <div className="w-14 h-14 rounded-2xl bg-secondary-container flex items-center justify-center text-primary mb-3.5 group-hover:scale-105 transition-transform duration-150">
             <UploadCloud className="w-8 h-8" />
           </div>
-          <h2 className="text-base font-bold text-on-surface mb-1" id="upload-zone-heading">Drag and drop your .xlsx file here</h2>
+          <h2 className="text-base font-bold text-on-surface mb-1" id="upload-zone-heading">
+            {uploadMutation.isPending ? 'Uploading & validating spreadsheet...' : 'Drag and drop your .xlsx file here'}
+          </h2>
           <p className="text-xs text-on-surface-variant mb-3">or</p>
-          <button className="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold rounded-lg border border-outline-variant shadow-sm transition-colors duration-150 mb-3" type="button">
-            Browse Files
+          <button 
+            type="button"
+            disabled={uploadMutation.isPending}
+            onClick={(e) => {
+              e.stopPropagation();
+              fileInputRef.current?.click();
+            }}
+            className="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold rounded-lg border border-outline-variant shadow-sm transition-colors duration-150 mb-3 cursor-pointer"
+          >
+            {uploadMutation.isPending ? 'Processing...' : 'Browse Files'}
           </button>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-[11px] text-on-surface-variant">
             <span>Max 10MB, .xlsx format</span>

@@ -7,7 +7,13 @@ import { processApi, masterApi, employeeApi } from '../../lib/api.js';
 export function RegisterProcess() {
   const navigate = useNavigate();
   const [masters, setMasters] = useState({ verticals: [], sbus: [], clients: [] });
-  const [employees, setEmployees] = useState([]);
+  const [roleHolders, setRoleHolders] = useState({
+    OPS_QUALITY_HEAD: [],
+    CBO: [],
+    SBU_HEAD: [],
+    ACCOUNT_HEAD: [],
+    PROJECT_MANAGER: [],
+  });
   
   const [formData, setFormData] = useState({
     vertical_id: '',
@@ -22,6 +28,10 @@ export function RegisterProcess() {
     facility_name: '',
     started_on: '',
     ended_on: '',
+    ops_head_ecode: '',
+    cbo_ecode: '',
+    sbu_head_ecode: '',
+    account_head_ecode: '',
     pm_ecode: '',
   });
 
@@ -39,9 +49,16 @@ export function RegisterProcess() {
       }
     }).catch(err => console.warn('Could not load masters', err));
 
-    employeeApi.list({ page: 1, pageSize: 100, status: 'ACTIVE' }).then(data => {
-      if (data?.employees) setEmployees(data.employees);
-    }).catch(err => console.warn('Could not load employees', err));
+    const roles = ['OPS_QUALITY_HEAD', 'CBO', 'SBU_HEAD', 'ACCOUNT_HEAD', 'PROJECT_MANAGER'];
+    roles.forEach(roleCode => {
+      employeeApi.list({ page: 1, pageSize: 100, status: 'ACTIVE', role_code: roleCode })
+        .then(res => {
+          if (Array.isArray(res?.employees)) {
+            setRoleHolders(prev => ({ ...prev, [roleCode]: res.employees }));
+          }
+        })
+        .catch(console.warn);
+    });
   }, []);
 
   const filteredSBUs = formData.vertical_id 
@@ -60,8 +77,8 @@ export function RegisterProcess() {
     setFormData(prev => ({ ...prev, status }));
   };
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (e, isDraft = false) => {
+    if (e) e.preventDefault();
     setSubmitError(null);
     setIsSubmitting(true);
     
@@ -69,12 +86,16 @@ export function RegisterProcess() {
       const payload = {
         vertical_id: Number(formData.vertical_id),
         sbu_id: formData.sbu_id ? Number(formData.sbu_id) : null,
-        process_name: formData.process_name.trim(),
+        process_name: formData.process_name?.trim() || null,
         wps_code: formData.wps_code?.trim() || null,
         client_id: formData.client_id ? Number(formData.client_id) : null,
-        client_type: formData.client_type,
-        status: formData.status,
+        client_type: formData.client_type || 'DOMESTIC',
+        status: isDraft ? 'DRAFT' : formData.status,
         started_on: formData.started_on || null,
+        ops_head_ecode: formData.ops_head_ecode?.trim() || null,
+        cbo_ecode: formData.cbo_ecode?.trim() || null,
+        sbu_head_ecode: formData.sbu_head_ecode?.trim() || null,
+        account_head_ecode: formData.account_head_ecode?.trim() || null,
         pm_ecode: formData.pm_ecode?.trim() || null,
       };
       
@@ -423,8 +444,17 @@ export function RegisterProcess() {
               </div>
               <span className="text-xs font-semibold text-on-surface truncate">OPS Quality Head</span>
               <div className="relative mt-1">
-                <select className="w-full text-[11px] rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none" disabled>
-                  <option>Unassigned (Escalate)</option>
+                <select 
+                  id="ops_head_ecode"
+                  value={formData.ops_head_ecode}
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                  className="w-full text-[11px] rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                >
+                  <option value="">Unassigned (Escalate)</option>
+                  {roleHolders.OPS_QUALITY_HEAD.map(emp => (
+                    <option key={emp.ecode} value={emp.ecode}>{emp.name}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -437,8 +467,17 @@ export function RegisterProcess() {
               </div>
               <span className="text-xs font-semibold text-on-surface truncate">CBO</span>
               <div className="relative mt-1">
-                <select className="w-full text-[11px] rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none" disabled>
-                  <option>Unassigned (Escalate)</option>
+                <select 
+                  id="cbo_ecode"
+                  value={formData.cbo_ecode}
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                  className="w-full text-[11px] rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                >
+                  <option value="">Unassigned (Escalate)</option>
+                  {roleHolders.CBO.map(emp => (
+                    <option key={emp.ecode} value={emp.ecode}>{emp.name}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -451,8 +490,17 @@ export function RegisterProcess() {
               </div>
               <span className="text-xs font-semibold text-on-surface truncate">SBU Head</span>
               <div className="relative mt-1">
-                <select className="w-full text-[11px] rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none" disabled>
-                  <option>Unassigned (Escalate)</option>
+                <select 
+                  id="sbu_head_ecode"
+                  value={formData.sbu_head_ecode}
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                  className="w-full text-[11px] rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                >
+                  <option value="">Unassigned (Escalate)</option>
+                  {roleHolders.SBU_HEAD.map(emp => (
+                    <option key={emp.ecode} value={emp.ecode}>{emp.name}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -465,8 +513,17 @@ export function RegisterProcess() {
               </div>
               <span className="text-xs font-semibold text-on-surface truncate">Account Head</span>
               <div className="relative mt-1">
-                <select className="w-full text-[11px] rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none" disabled>
-                  <option>Unassigned (Escalate)</option>
+                <select 
+                  id="account_head_ecode"
+                  value={formData.account_head_ecode}
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                  className="w-full text-[11px] rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                >
+                  <option value="">Unassigned (Escalate)</option>
+                  {roleHolders.ACCOUNT_HEAD.map(emp => (
+                    <option key={emp.ecode} value={emp.ecode}>{emp.name}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -487,7 +544,7 @@ export function RegisterProcess() {
                   className="w-full text-[11px] font-medium rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                 >
                   <option value="">Unassigned (Escalate)</option>
-                  {employees.map(emp => (
+                  {roleHolders.PROJECT_MANAGER.map(emp => (
                     <option key={emp.ecode} value={emp.ecode}>{emp.name}</option>
                   ))}
                 </select>
@@ -507,14 +564,15 @@ export function RegisterProcess() {
               type="button" 
               onClick={() => navigate('/registry')}
               disabled={isSubmitting}
-              className="px-4 py-2 text-xs font-semibold text-on-surface-variant hover:text-on-surface bg-surface-container hover:bg-surface-container-high rounded-lg transition-colors duration-150 disabled:opacity-50"
+              className="px-4 py-2 text-xs font-semibold text-on-surface-variant hover:text-on-surface bg-surface-container hover:bg-surface-container-high rounded-lg transition-colors duration-150 disabled:opacity-50 cursor-pointer"
             >
               Cancel
             </button>
             <button 
               type="button" 
-              disabled={isSubmitting}
-              className="px-4 py-2 text-xs font-semibold text-secondary hover:text-on-secondary-container bg-secondary-container/50 hover:bg-secondary-container border border-outline-variant rounded-lg transition-colors duration-150 disabled:opacity-50"
+              onClick={(e) => onSubmit(e, true)}
+              disabled={isSubmitting || !formData.vertical_id}
+              className="px-4 py-2 text-xs font-semibold text-secondary hover:text-on-secondary-container bg-secondary-container/50 hover:bg-secondary-container border border-outline-variant rounded-lg transition-colors duration-150 disabled:opacity-50 cursor-pointer"
             >
               Save as Draft
             </button>

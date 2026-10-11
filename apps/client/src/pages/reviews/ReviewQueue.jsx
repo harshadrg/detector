@@ -1,11 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   CheckCircle, 
   XCircle, 
   Search, 
   Calendar, 
-  ChevronDown, 
   Receipt, 
   RefreshCw, 
   GitCompare, 
@@ -16,7 +16,6 @@ import {
   AlertTriangle,
   Clock,
   ShieldCheck,
-  CheckCircle2,
   Eye,
   EyeOff
 } from 'lucide-react';
@@ -25,6 +24,7 @@ import { Button } from '../../components/ui/Button.jsx';
 import { Badge } from '../../components/ui/Badge.jsx';
 
 export function ReviewQueue() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('changeRequests');
   const [search, setSearch] = useState('');
@@ -103,12 +103,11 @@ export function ReviewQueue() {
           </p>
         </div>
         <div className="flex items-center gap-2.5">
-          <Button variant="outline" className="flex items-center gap-1.5 h-9 bg-surface-container border-outline-variant hover:bg-surface-container-high">
-            <CheckCircle2 className="w-4 h-4" />
-            <span>Batch Actions</span>
-            <ChevronDown className="w-3 h-3 ml-1" />
-          </Button>
-          <Button variant="outline" className="flex items-center gap-1.5 h-9 bg-surface-container border-outline-variant hover:bg-surface-container-high">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate('/audit')}
+            className="flex items-center gap-1.5 h-9 bg-surface-container border-outline-variant hover:bg-surface-container-high"
+          >
             <Receipt className="w-4 h-4" />
             <span>Audit Trace</span>
           </Button>
@@ -160,15 +159,6 @@ export function ReviewQueue() {
               placeholder="Search requests, codes..." 
               type="text"
             />
-          </div>
-          <div className="relative">
-            <select className="appearance-none bg-surface-container-lowest border border-outline-variant rounded-lg pl-3 pr-8 py-1.5 text-xs text-on-surface font-medium focus:outline-none focus:border-primary transition-all cursor-pointer">
-              <option>All Priorities</option>
-              <option>High Priority</option>
-              <option>Medium Priority</option>
-              <option>Normal Priority</option>
-            </select>
-            <ChevronDown className="w-3.5 h-3.5 absolute right-2 top-1/2 -translate-y-1/2 text-outline pointer-events-none" />
           </div>
           <div className="relative">
             <select className="appearance-none bg-surface-container-lowest border border-outline-variant rounded-lg pl-3 pr-8 py-1.5 text-xs text-on-surface font-medium focus:outline-none focus:border-primary transition-all cursor-pointer">
@@ -306,9 +296,6 @@ export function ReviewQueue() {
                       className="bg-rose-600 hover:bg-rose-700 text-white font-headline text-xs font-semibold px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm"
                     >
                       <XCircle className="w-4 h-4" /> Reject with Remarks
-                    </Button>
-                    <Button variant="outline" className="border-rose-300 text-rose-700 hover:bg-rose-50 px-3 py-2 text-xs font-semibold rounded-lg">
-                      Quick Reject
                     </Button>
                   </div>
                   <button onClick={() => setExpandedCr(null)} className="text-xs text-on-surface-variant hover:text-on-surface font-medium underline underline-offset-2 transition-colors">

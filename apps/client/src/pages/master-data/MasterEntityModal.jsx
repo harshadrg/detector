@@ -20,13 +20,13 @@ const schemas = {
   }),
   CLIENTS: z.object({
     client_name: z.string().min(2, "Name is required").max(150),
-    client_type: z.enum(['INTERNAL', 'EXTERNAL']),
+    client_type: z.enum(['DOMESTIC', 'INTERNATIONAL']),
     is_active: z.boolean(),
   }),
   LOCATIONS: z.object({
+    facility_name: z.string().min(2, "Facility name is required").max(150),
     city: z.string().min(2, "City is required").max(100),
     state: z.string().min(2, "State is required").max(100),
-    country: z.string().default('India'),
     is_active: z.boolean(),
   }),
 };
@@ -48,8 +48,8 @@ export function MasterEntityModal({ isOpen, onClose, entityType, initialData, ve
     resolver: zodResolver(schema),
     defaultValues: {
       is_active: true,
-      country: 'India',
-      client_type: 'EXTERNAL',
+      facility_name: '',
+      client_type: 'DOMESTIC',
     },
   });
 
@@ -62,7 +62,7 @@ export function MasterEntityModal({ isOpen, onClose, entityType, initialData, ve
           is_active: initialData.is_active ?? true,
         });
       } else {
-        reset({ is_active: true, country: 'India', client_type: 'EXTERNAL' });
+        reset({ is_active: true, facility_name: '', client_type: 'DOMESTIC' });
       }
     }
   }, [isOpen, initialData, reset]);
@@ -187,8 +187,8 @@ export function MasterEntityModal({ isOpen, onClose, entityType, initialData, ve
                     {...register('client_type')}
                     className="w-full px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary"
                   >
-                    <option value="INTERNAL">INTERNAL</option>
-                    <option value="EXTERNAL">EXTERNAL</option>
+                    <option value="DOMESTIC">DOMESTIC</option>
+                    <option value="INTERNATIONAL">INTERNATIONAL</option>
                   </select>
                   {errors.client_type && <p className="text-error text-xs mt-1">{errors.client_type.message}</p>}
                 </div>
@@ -198,10 +198,21 @@ export function MasterEntityModal({ isOpen, onClose, entityType, initialData, ve
             {entityType === 'LOCATIONS' && (
               <>
                 <div>
+                  <label className="block text-sm font-medium text-on-surface mb-1">Facility Name</label>
+                  <input
+                    type="text"
+                    {...register('facility_name')}
+                    placeholder="e.g. Tower B SEZ Facility"
+                    className="w-full px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary"
+                  />
+                  {errors.facility_name && <p className="text-error text-xs mt-1">{errors.facility_name.message}</p>}
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-on-surface mb-1">City</label>
                   <input
                     type="text"
                     {...register('city')}
+                    placeholder="e.g. Mumbai"
                     className="w-full px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary"
                   />
                   {errors.city && <p className="text-error text-xs mt-1">{errors.city.message}</p>}
@@ -211,18 +222,10 @@ export function MasterEntityModal({ isOpen, onClose, entityType, initialData, ve
                   <input
                     type="text"
                     {...register('state')}
+                    placeholder="e.g. Maharashtra"
                     className="w-full px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary"
                   />
                   {errors.state && <p className="text-error text-xs mt-1">{errors.state.message}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-on-surface mb-1">Country</label>
-                  <input
-                    type="text"
-                    {...register('country')}
-                    className="w-full px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary"
-                  />
-                  {errors.country && <p className="text-error text-xs mt-1">{errors.country.message}</p>}
                 </div>
               </>
             )}

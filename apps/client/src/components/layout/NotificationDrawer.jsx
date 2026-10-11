@@ -200,9 +200,13 @@ export function NotificationDrawer() {
           </div>
 
           <div className="border-t border-surface-variant bg-surface-container-low px-4 py-2.5 text-center">
-            <a className="text-xs font-semibold text-primary hover:text-primary-dim inline-flex items-center justify-center gap-1 transition" href="#">
+            <button 
+              type="button"
+              onClick={() => setFilter('ALL')}
+              className="text-xs font-semibold text-primary hover:text-primary-dim inline-flex items-center justify-center gap-1 transition cursor-pointer"
+            >
               <span>View All Notifications</span>
-            </a>
+            </button>
           </div>
         </div>
       )}

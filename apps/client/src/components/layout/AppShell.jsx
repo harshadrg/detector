@@ -1,11 +1,21 @@
 import { NavLink, Outlet, useLocation } from 'react-router';
 import { ShieldCheck, LayoutDashboard, GitFork, Users, LogOut, ClipboardCheck, UploadCloud, Database, History, PlusCircle } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../context/useAuth.js';
+import { changeRequestApi } from '../../lib/api.js';
 import { NotificationDrawer } from './NotificationDrawer.jsx';
 
 export function AppShell() {
-  const { user, logout, activeContextRole } = useAuth();
+  const { user, logout, activeContextRole, hasPermission } = useAuth();
   const location = useLocation();
+
+  const canReview = hasPermission('BPMS.CHANGE_REQUEST.APPROVE');
+  const { data: reviewData } = useQuery({
+    queryKey: ['sidebar-pending-reviews'],
+    queryFn: () => changeRequestApi.listPendingReviews(),
+    enabled: Boolean(canReview),
+  });
+  const pendingReviewsCount = reviewData?.reviews?.length || 0;
 
   return (
     <div className="bg-surface-container-low text-on-surface font-sans antialiased min-h-screen flex">
@@ -100,7 +110,11 @@ export function AppShell() {
             >
               <ClipboardCheck className="w-4 h-4 shrink-0" />
               <span className="text-xs font-semibold flex-1">Review Queue</span>
-              <span className="bg-primary text-on-primary text-[10px] font-bold px-2 py-0.5 rounded-full">3</span>
+              {pendingReviewsCount > 0 && (
+                <span className="bg-primary text-on-primary text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  {pendingReviewsCount}
+                </span>
+              )}
             </NavLink>
 
             <NavLink 

@@ -6,7 +6,6 @@ import {
   Users, 
   MapPin, 
   Search, 
-  Filter, 
   Plus, 
   Edit2, 
   Info,
@@ -22,6 +21,7 @@ import { MasterEntityModal } from './MasterEntityModal';
 export function MasterData() {
   const [activeTab, setActiveTab] = useState('VERTICALS');
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('VERTICALS');
   const [selectedEntity, setSelectedEntity] = useState(null);
@@ -72,6 +72,13 @@ export function MasterData() {
   };
 
   const { data: currentData, loading: isCurrentLoading } = getTableData();
+
+  const filteredData = currentData.filter(item => {
+    if (statusFilter === 'ALL') return true;
+    if (statusFilter === 'ACTIVE') return Boolean(item.is_active);
+    if (statusFilter === 'INACTIVE') return !item.is_active;
+    return true;
+  });
 
   return (
     <main className="flex-1 flex flex-col overflow-y-auto bg-background focus:outline-none">
@@ -135,10 +142,15 @@ export function MasterData() {
             />
           </div>
           <div className="flex items-center gap-2.5 shrink-0">
-            <button className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-outline-variant/60 bg-surface-container-lowest hover:bg-surface-container text-xs font-semibold text-on-surface transition-colors" type="button">
-              <Filter className="w-4 h-4" />
-              <span>Filters</span>
-            </button>
+            <select 
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="inline-flex items-center px-3 py-2 rounded-lg border border-outline-variant/60 bg-surface-container-lowest hover:bg-surface-container text-xs font-semibold text-on-surface transition-colors cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary"
+            >
+              <option value="ALL">All Statuses</option>
+              <option value="ACTIVE">Active Only</option>
+              <option value="INACTIVE">Inactive Only</option>
+            </select>
             <button 
               onClick={() => { 
                 setSelectedEntity(null); 
@@ -180,7 +192,8 @@ export function MasterData() {
                   )}
                   {activeTab === 'LOCATIONS' && (
                     <>
-                      <th className="py-3 px-5 w-48" scope="col">Location ID</th>
+                      <th className="py-3 px-5 w-36" scope="col">Location ID</th>
+                      <th className="py-3 px-5" scope="col">Facility Name</th>
                       <th className="py-3 px-5" scope="col">City</th>
                       <th className="py-3 px-5" scope="col">State</th>
                       <th className="py-3 px-5 w-36" scope="col">Status</th>
@@ -196,14 +209,14 @@ export function MasterData() {
                       Loading data...
                     </td>
                   </tr>
-                ) : currentData.length === 0 ? (
+                ) : filteredData.length === 0 ? (
                   <tr>
-                    <td colSpan="5" className="py-8 text-center text-on-surface-variant text-sm">
+                    <td colSpan="6" className="py-8 text-center text-on-surface-variant text-sm">
                       No data available.
                     </td>
                   </tr>
                 ) : (
-                  currentData.map((item) => {
+                  filteredData.map((item) => {
                     const isExpanded = expandedVerticals.has(item.vertical_id);
                     const verticalSbus = sbus.filter(sbu => sbu.vertical_id === item.vertical_id);
 
@@ -305,6 +318,7 @@ export function MasterData() {
                         {activeTab === 'LOCATIONS' && (
                           <>
                             <td className="py-3 px-5 font-mono text-primary font-medium">{item.location_id}</td>
+                            <td className="py-3 px-5 text-on-surface font-medium">{item.facility_name}</td>
                             <td className="py-3 px-5 text-on-surface">{item.city}</td>
                             <td className="py-3 px-5 text-on-surface">{item.state}</td>
                             <td className="py-3 px-5">
@@ -335,7 +349,7 @@ export function MasterData() {
           <div className="px-6 py-3.5 bg-surface-container-low border-t border-outline-variant/40 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-on-surface-variant">
             <div className="flex items-center gap-2">
               <Info className="w-4 h-4 text-primary" />
-              <span>Showing <strong>{currentData.length}</strong> records</span>
+              <span>Showing <strong>{filteredData.length}</strong> records</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5 font-mono text-[11px] text-outline">
