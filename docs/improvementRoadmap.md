@@ -101,7 +101,7 @@ This document outlines the verified, implementation-ready improvement plan for t
 ---
 
 ## Phase 6: BPMS Workflow Engine (Review Queue & Handovers)
-**Status:** [ ] Pending
+**Status:** [x] Completed
 
 * **Objective:** Unify and fix the workflow execution interfaces, enforce approval security, and activate the notification engine for BPMS actions.
 * **Current Behavior:** The Review Queue frontend expects a mapped object, but backend returns stringified JSON, causing crashes. Priority is a hardcoded UI illusion. Handovers lack a review UI, and Admins are forced to request handovers from themselves. No notifications are sent for approvals.
@@ -109,12 +109,12 @@ This document outlines the verified, implementation-ready improvement plan for t
 * **Dependencies:** Frontend Error Boundaries (Phase 1) should be in place.
 * **Security & Validation:** **High-Risk Action:** Approving or Rejecting a Change Request or Handover MUST require password confirmation.
 * **Step-by-Step Actions:**
-  - [ ] **Step 1:** **Backend:** Update `listPendingReviews` to parse `proposed_data` JSON and generate the `diff` and `proposed_fields` objects expected by the frontend.
-  - [ ] **Step 2:** **Backend:** Modify `handover.service.js` `requestHandover` to auto-execute (bypass `SUBMITTED`) if the requester is an Admin.
-  - [ ] **Step 3:** **Backend:** Inject `notificationService.dispatch` into both services to notify requesters/target PMs upon submission, approval, and rejection.
-  - [ ] **Step 4:** **Backend:** Update the review/approve endpoints for CRs and Handovers to accept and verify a `password`.
-  - [ ] **Step 5:** **Frontend:** In `ReviewQueue.jsx`, remove all "Priority" UI elements. Update the data mapping to use `{cr.requested_by_name}` instead of `submitted_by`. Add password confirmation to the Approve/Reject flow.
-  - [ ] **Step 6:** **Frontend:** Remove "PM Handovers" from the global application sidebar. Build the missing Review Handover modal and place handover initiation/review directly into the Process Registry / Process Detail views. Add password confirmation to the handover approval flow.
+  - [x] **Step 1:** **Backend:** Update `listPendingReviews` to parse `proposed_data` JSON and generate the `diff` and `proposed_fields` objects expected by the frontend.
+  - [x] **Step 2:** **Backend:** Modify `handover.service.js` `requestHandover` to auto-execute (bypass `SUBMITTED`) if the requester is an Admin.
+  - [x] **Step 3:** **Backend:** Inject `notificationService.dispatch` into both services to notify requesters/target PMs upon submission, approval, and rejection.
+  - [x] **Step 4:** **Backend:** Update the review/approve endpoints for CRs and Handovers to accept and verify a `password`.
+  - [x] **Step 5:** **Frontend:** In `ReviewQueue.jsx`, remove all "Priority" UI elements. Update the data mapping to use `{cr.requested_by_name}` instead of `submitted_by`. Add password confirmation to the Approve/Reject flow.
+  - [x] **Step 6:** **Frontend:** Remove "PM Handovers" from the global application sidebar. Build the missing Review Handover modal and place handover initiation/review directly into the Process Registry / Process Detail views. Add password confirmation to the handover approval flow.
 * **Verification Criteria:** Priority badges are gone. Approving a CR requires a password and sends a notification to the requester. Handovers can be approved from the Process Registry.
 
 ---

@@ -12,7 +12,7 @@ export function RegisterProcess() {
     CBO: [],
     SBU_HEAD: [],
     ACCOUNT_HEAD: [],
-    PROJECT_MANAGER: [],
+    PM: [],
   });
   
   const [formData, setFormData] = useState({
@@ -49,7 +49,7 @@ export function RegisterProcess() {
       }
     }).catch(err => console.warn('Could not load masters', err));
 
-    const roles = ['OPS_QUALITY_HEAD', 'CBO', 'SBU_HEAD', 'ACCOUNT_HEAD', 'PROJECT_MANAGER'];
+    const roles = ['OPS_QUALITY_HEAD', 'CBO', 'SBU_HEAD', 'ACCOUNT_HEAD', 'PM'];
     roles.forEach(roleCode => {
       employeeApi.list({ page: 1, pageSize: 100, status: 'ACTIVE', role_code: roleCode })
         .then(res => {
@@ -544,7 +544,7 @@ export function RegisterProcess() {
                   className="w-full text-[11px] font-medium rounded border border-outline-variant bg-surface py-1.5 px-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                 >
                   <option value="">Unassigned (Escalate)</option>
-                  {roleHolders.PROJECT_MANAGER.map(emp => (
+                  {(roleHolders.PM || []).map(emp => (
                     <option key={emp.ecode} value={emp.ecode}>{emp.name}</option>
                   ))}
                 </select>
